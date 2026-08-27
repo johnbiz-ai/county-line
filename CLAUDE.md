@@ -32,6 +32,7 @@ Core loop:
 - `:app` — the Android app. Foreground service, notifications, DataStore persistence, boot
   receiver, permission flow, Compose status screen. Depends on `:core`.
 - `gradle/libs.versions.toml` — version catalog; all dependency/plugin versions live here.
+- `docker/` + `docker-compose.yml` — containerised build (see Tooling).
 
 ## Tech Stack
 
@@ -97,11 +98,18 @@ Core loop:
   dependencies are pinned in `mise.toml`, not installed globally or by hand
 - Run project commands through `mise exec -- <cmd>` (or `mise run <task>`) so the pinned versions are used
 - After changing `mise.toml`, run `mise install`
+- **Docker alternative** (`docker/Dockerfile`, `docker-compose.yml`): a toolchain image with
+  JDK 17 + Android SDK 35, project bind-mounted. `./docker/build.sh <gradle tasks…>` runs it
+  as the host UID/GID so outputs stay host-owned. `docker/local.properties` is mounted
+  read-only over the project's to force `sdk.dir=/opt/android-sdk` inside the container.
+  Keep the SDK/build-tools/cmdline-tools versions here in sync with the `ARG`s in
+  `docker/Dockerfile` and the Docker section of the README.
 
 ## Commands
 
 Needs a JDK 17 (`mise install`) **and** an Android SDK with `platforms;android-35` +
 `build-tools;35.0.0`. Point at it via `local.properties` (`sdk.dir=...`) or `$ANDROID_HOME`.
+No local SDK? Prefix any task with `./docker/build.sh` (see Tooling).
 
 - Build debug APK: `./gradlew assembleDebug` (→ `app/build/outputs/apk/debug/app-debug.apk`)
 - Install on device: `./gradlew installDebug` (or `mise run install`)

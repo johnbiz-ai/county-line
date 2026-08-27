@@ -1,0 +1,33 @@
+# Containerised build environment for County Line.
+#
+#   docker compose build                                  # build the toolchain image (once)
+#   docker compose run --rm android ./gradlew :core:test  # run any Gradle task
+#   docker compose run --rm android ./gradlew assembleDebug
+#   ./docker/build.sh :core:test                          # same, with host UID mapping
+#
+# The image carries only JDK 17 + the Android SDK; the project is bind-mounted,
+# so editing source never needs an image rebuild.
+
+services:
+  android:
+    build:
+      context: docker
+      dockerfile: Dockerfile
+    image: county-line/android-build:35
+    # Run as the host user so files written to bind mounts (build/, .gradle/) stay yours,
+    # and share the host's on-disk .gradle without ownership clashes.
+    # docker/build.sh sets these; otherwise falls back to the image's `builder` (uid 1000).
+    user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
+    working_dir: /workspace
+    environment:
+      GRADLE_USER_HOME: /gradle
+    volumes:
+      - .:/workspace
+      # Shadow any host-specific local.properties with the in-container SDK path.
+      - ./docker/local.properties:/workspace/local.properties:ro
+      # Persist the Gradle cache (downloaded deps, wrapper dist) across runs.
+      - gradle-cache:/gradle
+    command: ["./gradlew", "assembleDebug"]
+
+volumes:
+  gradle-cache:

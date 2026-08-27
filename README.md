@@ -51,6 +51,30 @@ git-ignored.
   sdk.dir=/absolute/path/to/Android/Sdk
   ```
 
+### Docker (no local SDK needed)
+
+A build image with JDK 17 + Android SDK 35 is defined in `docker/Dockerfile`. It
+carries only the toolchain — the project is bind-mounted, so source edits never
+need an image rebuild.
+
+```sh
+./docker/build.sh                      # -> ./gradlew assembleDebug (as your host user)
+./docker/build.sh :core:test
+./docker/build.sh assembleDebug test lint
+```
+
+`build.sh` runs the container as your UID/GID, so `app/build/…/app-debug.apk` and
+other outputs land on the host owned by you. Downloaded Gradle dependencies persist
+in the `county-line_gradle-cache` volume. Plain `docker compose` works too:
+
+```sh
+docker compose build
+DOCKER_UID=$(id -u) DOCKER_GID=$(id -g) docker compose run --rm android ./gradlew test
+```
+
+`connectedAndroidTest` / `installDebug` still need a real device or emulator and
+are not run from the container.
+
 ### Install on a device
 
 1. Enable **Developer options → USB debugging** on the phone and plug it in
@@ -82,6 +106,7 @@ route). Cold-start behaviour can also be checked with `adb shell am kill net.joh
 | `CountyResolver`/detector tests only | `./gradlew :core:test` |
 | Instrumented tests | `./gradlew connectedAndroidTest` |
 | Lint | `./gradlew lint` |
+| Any task in Docker | `./docker/build.sh <tasks…>` |
 
 (`mise run build` / `test` / `lint` / `install` wrap these.)
 
