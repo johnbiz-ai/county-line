@@ -1,8 +1,22 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
 }
+
+// Release signing config, from (in order of precedence):
+//   1. env vars: COUNTYLINE_KEYSTORE, COUNTYLINE_KEYSTORE_PASSWORD, COUNTYLINE_KEY_ALIAS, COUNTYLINE_KEY_PASSWORD
+//   2. keystore.properties in the repo root (git-ignored; see keystore.properties.example)
+// If neither is present, the release build falls back to debug signing so CI/dev builds still work.
+val keystoreProperties = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
+fun signingValue(env: String, prop: String): String? =
+    System.getenv(env) ?: keystoreProperties.getProperty(prop)
 
 android {
     namespace = "net.johnbiz.countyline"
@@ -12,10 +26,24 @@ android {
         applicationId = "net.johnbiz.countyline"
         minSdk = 26
         targetSdk = 35
+        // Bump versionCode on EVERY Play upload (must strictly increase); versionName is the
+        // human-facing string. See RELEASING.md.
         versionCode = 1
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            val storePathValue = signingValue("COUNTYLINE_KEYSTORE", "storeFile")
+            if (storePathValue != null) {
+                storeFile = rootProject.file(storePathValue)
+                storePassword = signingValue("COUNTYLINE_KEYSTORE_PASSWORD", "storePassword")
+                keyAlias = signingValue("COUNTYLINE_KEY_ALIAS", "keyAlias")
+                keyPassword = signingValue("COUNTYLINE_KEY_PASSWORD", "keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -26,6 +54,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = if (signingConfigs.getByName("release").storeFile != null) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("No release keystore configured; signing :app release with the debug key.")
+                signingConfigs.getByName("debug")
+            }
         }
     }
 

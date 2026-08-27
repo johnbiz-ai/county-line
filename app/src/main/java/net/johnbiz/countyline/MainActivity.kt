@@ -12,9 +12,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import net.johnbiz.countyline.location.LocationPermissions
 import net.johnbiz.countyline.location.TrackingReadiness
+import net.johnbiz.countyline.ui.BackgroundLocationDisclosureDialog
 import net.johnbiz.countyline.ui.CountyLineTheme
 import net.johnbiz.countyline.ui.StatusScreen
 import net.johnbiz.countyline.ui.StatusViewModel
@@ -22,6 +25,10 @@ import net.johnbiz.countyline.ui.StatusViewModel
 class MainActivity : ComponentActivity() {
 
     private val viewModel: StatusViewModel by viewModels()
+
+    /** True while the Play-required background-location disclosure dialog is showing. */
+    private var showBackgroundDisclosure by mutableStateOf(false)
+    private var backgroundEverRequested = false
 
     private val foregroundLocationLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -53,6 +60,15 @@ class MainActivity : ComponentActivity() {
                     onOpenSettings = ::openAppSettings,
                     onToggleTracking = viewModel::setTracking,
                 )
+                if (showBackgroundDisclosure) {
+                    BackgroundLocationDisclosureDialog(
+                        onContinue = {
+                            showBackgroundDisclosure = false
+                            requestBackgroundLocation()
+                        },
+                        onDismiss = { showBackgroundDisclosure = false },
+                    )
+                }
             }
         }
     }
@@ -68,17 +84,10 @@ class MainActivity : ComponentActivity() {
             TrackingReadiness.NEEDS_FOREGROUND_LOCATION ->
                 foregroundLocationLauncher.launch(LocationPermissions.foregroundPermissions)
 
+            // Show the prominent disclosure first; the OS prompt happens only after "Continue".
             TrackingReadiness.NEEDS_BACKGROUND_LOCATION ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(
-                            this, Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-                        ) || !backgroundEverRequested
-                    ) {
-                        backgroundEverRequested = true
-                        backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                    } else {
-                        openAppSettings()
-                    }
+                    showBackgroundDisclosure = true
                 }
 
             TrackingReadiness.FOREGROUND_ONLY -> openAppSettings()
@@ -92,7 +101,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private var backgroundEverRequested = false
+    private fun requestBackgroundLocation() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+        val canPrompt = ActivityCompat.shouldShowRequestPermissionRationale(
+            this, Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+        ) || !backgroundEverRequested
+        if (canPrompt) {
+            backgroundEverRequested = true
+            backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        } else {
+            // User previously chose "While using the app" and won't be asked again in-app.
+            openAppSettings()
+        }
+    }
 
     private fun openAppSettings() {
         startActivity(

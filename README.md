@@ -106,9 +106,19 @@ route). Cold-start behaviour can also be checked with `adb shell am kill net.joh
 | `CountyResolver`/detector tests only | `./gradlew :core:test` |
 | Instrumented tests | `./gradlew connectedAndroidTest` |
 | Lint | `./gradlew lint` |
+| Release App Bundle | `./gradlew bundleRelease` |
 | Any task in Docker | `./docker/build.sh <tasks…>` |
 
 (`mise run build` / `test` / `lint` / `install` wrap these.)
+
+## Releasing
+
+`bundleRelease` produces a signed `.aab` for Google Play. Signing comes from a git-ignored
+`keystore.properties` (see `keystore.properties.example`) or `COUNTYLINE_KEYSTORE*` env
+vars; with neither, it falls back to the debug key. The full Play Store process — keystore,
+Play Console declarations for background location, store listing, screenshots — is in
+[RELEASING.md](RELEASING.md). Store assets live in `docs/store/`; the privacy policy is
+`docs/privacy-policy.md`.
 
 ## Tests
 

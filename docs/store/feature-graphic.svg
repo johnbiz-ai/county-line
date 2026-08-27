@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E7D32"/>
+      <stop offset="1" stop-color="#14481A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#bg)"/>
+
+  <!-- faint county-grid texture -->
+  <g stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2" fill="none">
+    <path d="M700 30 L780 120 L740 220 L850 270 L800 480"/>
+    <path d="M840 10 L900 130 L1000 160 L950 320 L1010 430"/>
+    <path d="M660 210 L780 120 M740 220 L900 130 M850 270 L950 320"/>
+  </g>
+
+  <!-- pin + crossing-line motif, vertically centred -->
+  <g transform="translate(150 90)">
+    <path d="M44 20 L104 120 L60 220 L128 320"
+          fill="none" stroke="#FFFFFF" stroke-width="5"
+          stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.8"
+          stroke-dasharray="2 20"/>
+    <g transform="translate(150 130)">
+      <path d="M0 120 C-54 30 -74 2 -74 -34 A74 74 0 1 1 74 -34 C74 2 54 30 0 120 Z" fill="#FFFFFF"/>
+      <circle cx="0" cy="-34" r="30" fill="#1B5E20"/>
+    </g>
+  </g>
+
+  <text x="440" y="235" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif"
+        font-size="82" font-weight="700" fill="#FFFFFF">County Line</text>
+  <text x="443" y="292" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif"
+        font-size="30" font-weight="400" fill="#FFFFFF" fill-opacity="0.82">Cross a county line, get a notification</text>
+</svg>

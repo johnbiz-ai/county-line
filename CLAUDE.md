@@ -38,6 +38,7 @@ Core loop:
   receiver, permission flow, Compose status screen. Depends on `:core`.
 - `gradle/libs.versions.toml` — version catalog; all dependency/plugin versions live here.
 - `docker/` + `docker-compose.yml` — containerised build (see Tooling).
+- `RELEASING.md`, `docs/privacy-policy.md`, `docs/store/` — Google Play submission (see Release).
 
 ## Tech Stack
 
@@ -95,6 +96,9 @@ Core loop:
 - `LocationPermissions.readiness()` collapses permission state into a `TrackingReadiness`
   enum (incl. `FOREGROUND_ONLY` for "while using the app"); `MainActivity.advancePermissionFlow()`
   requests exactly the next missing permission in Play-policy order.
+- **Play prominent disclosure**: `BackgroundLocationDisclosureDialog` must be shown and
+  accepted before the `ACCESS_BACKGROUND_LOCATION` prompt — `advancePermissionFlow()` sets
+  `showBackgroundDisclosure` instead of launching the request directly. Don't bypass this.
 - `BootReceiver` restarts the service on `BOOT_COMPLETED` / `MY_PACKAGE_REPLACED` only if
   `trackingEnabled` **and** permissions still hold (`goAsync()` + short coroutine).
 - Polling frequency is currently constant (see `CountyTrackingService` companion consts) —
@@ -125,7 +129,24 @@ No local SDK? Prefix any task with `./docker/build.sh` (see Tooling).
 - Resolver + detector tests only (no SDK emulator, fast): `./gradlew :core:test`
 - Instrumented tests: `./gradlew connectedAndroidTest`
 - Lint: `./gradlew lint`
+- Release App Bundle: `./gradlew bundleRelease` (→ `app/build/outputs/bundle/release/app-release.aab`)
 - `mise run build | test | lint | install` wrap the above.
+
+## Release
+
+- **`./gradlew bundleRelease`** builds the signed `.aab` for Google Play. `assembleRelease`
+  is R8-minified + resource-shrunk (~2 MB APK); the `proguard-rules.pro` keeps
+  kotlinx-serialization intact (verified end-to-end on device).
+- Signing config in `app/build.gradle.kts` reads, in order: `COUNTYLINE_KEYSTORE*` env vars,
+  then a git-ignored `keystore.properties` (root; see `keystore.properties.example`). With
+  neither, release falls back to the **debug** key so CI/dev builds still succeed.
+- **Never commit** a keystore or `keystore.properties` (`.gitignore` blocks `*.jks`,
+  `*.keystore`, `keystore.properties`).
+- Bump `versionCode` on **every** Play upload; it must strictly increase.
+- Full submission process (Play Console background-location + foreground-service
+  declarations, data safety, store listing, demo video): **`RELEASING.md`**.
+- Store assets: `docs/store/` (icon, feature graphic, screenshots; `.svg` sources included).
+  Privacy policy source: `docs/privacy-policy.md` (host it; it has a contact-email placeholder).
 
 ## Code Style
 
