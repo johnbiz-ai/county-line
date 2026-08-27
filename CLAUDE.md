@@ -8,6 +8,11 @@ This file provides guidance to Claude Code when working on this repository.
 - Merge policy: squash or rebase merges only — no merge commits; keep history linear
 - Head branches auto-delete on merge
 - Always do work on a feature branch and open a pull request — never commit or push directly to `main`. The user reviews, approves, and merges every PR.
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit subjects and PR
+  titles: `type(scope): summary` (`feat`, `fix`, `build`, `chore`, `docs`, `refactor`, `test`,
+  `ci`, `perf`). Scope is optional (e.g. `core`, `app`, `docker`). Breaking changes get a `!`
+  before the colon or a `BREAKING CHANGE:` footer. Since PRs are squash-merged, the PR title is
+  the commit that lands on `main` — it must follow this format.
 
 ## Project Overview
 
