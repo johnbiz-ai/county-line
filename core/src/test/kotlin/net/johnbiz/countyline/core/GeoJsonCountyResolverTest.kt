@@ -63,6 +63,19 @@ class GeoJsonCountyResolverTest {
     }
 
     @Test
+    fun `reads a gzip-compressed stream`() {
+        val raw = javaClass.getResourceAsStream("/synthetic-counties.geojson")!!.use { it.readBytes() }
+        val gz = java.io.ByteArrayOutputStream()
+        java.util.zip.GZIPOutputStream(gz).use { it.write(raw) }
+
+        val r = java.io.ByteArrayInputStream(gz.toByteArray())
+            .use { GeoJsonCountyResolver.fromGzippedGeoJson(it) }
+
+        assertEquals("Alpha", r.resolve(lat = 0.5, lng = 0.5)?.name)
+        assertEquals(4, r.countyCount)
+    }
+
+    @Test
     fun `large polygon spanning many grid cells is still found`() {
         // Charlie covers lat 10..20, lng 10..20 => ~100 index cells.
         val r = synthetic()
@@ -80,12 +93,12 @@ class GeoJsonCountyResolverTest {
 
     // --- Real bundled dataset: fixture coordinates near known county borders --------------------
 
-    /** The app's bundled asset, resolved relative to the `core/` module dir at test time. */
-    private val bundledAsset = File("../app/src/main/assets/counties.geojson.gz")
+    /** The exact asset the app bundles, resolved relative to the `core/` module dir at test time. */
+    private val bundledAsset = File("../app/src/main/assets/counties.geojson")
 
     private fun realResolver(): GeoJsonCountyResolver {
         assumeTrue("bundled dataset not present at $bundledAsset", bundledAsset.exists())
-        return bundledAsset.inputStream().use { GeoJsonCountyResolver.fromGzippedGeoJson(it) }
+        return bundledAsset.inputStream().use { GeoJsonCountyResolver.fromGeoJson(it) }
     }
 
     @Test

@@ -43,11 +43,6 @@ android {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
 
-    // The bundled GeoJSON is already gzip-compressed; don't let AAPT re-compress it.
-    androidResources {
-        noCompress += "gz"
-    }
-
     testOptions {
         unitTests {
             isIncludeAndroidResources = true

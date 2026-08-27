@@ -15,11 +15,13 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.johnbiz.countyline.county.CountyRepository
@@ -39,7 +41,14 @@ import net.johnbiz.countyline.notify.Notifications
  */
 class CountyTrackingService : Service() {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    // A failure on a worker coroutine must not take down the whole app process:
+    // log it and stop the service cleanly instead.
+    private val crashHandler = CoroutineExceptionHandler { _, e ->
+        Log.e(TAG, "Tracking failed; disabling and stopping service", e)
+        runBlocking { runCatching { prefs.setTrackingEnabled(false) } }
+        stopTracking()
+    }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + crashHandler)
     private val handleMutex = Mutex()
 
     private lateinit var fusedClient: FusedLocationProviderClient
