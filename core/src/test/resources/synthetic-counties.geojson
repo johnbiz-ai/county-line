@@ -1,0 +1,53 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "36001",
+      "properties": { "STATE": "36", "COUNTY": "001", "NAME": "Alpha" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "06002",
+      "properties": { "STATE": "06", "COUNTY": "002", "NAME": "Bravo" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[1, 0], [2, 0], [2, 1], [1, 1], [1, 0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "48003",
+      "properties": { "STATE": "48", "COUNTY": "003", "NAME": "Charlie" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[10, 10], [20, 10], [20, 20], [10, 20], [10, 10]],
+          [[13, 13], [17, 13], [17, 17], [13, 17], [13, 13]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "12004",
+      "properties": { "STATE": "12", "COUNTY": "004", "NAME": "Delta" },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [[[30, 30], [31, 30], [31, 31], [30, 31], [30, 30]]],
+          [[[40, 40], [41, 40], [41, 41], [40, 41], [40, 40]]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "51005",
+      "properties": { "STATE": "51", "COUNTY": "005", "NAME": "Echo" },
+      "geometry": null
+    }
+  ]
+}

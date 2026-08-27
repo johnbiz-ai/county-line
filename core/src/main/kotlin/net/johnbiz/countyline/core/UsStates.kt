@@ -1,0 +1,70 @@
+package net.johnbiz.countyline.core
+
+/** Lookup from 2-digit state FIPS code to `(full name, USPS abbreviation)`. */
+object UsStates {
+    private val byFips: Map<String, Pair<String, String>> = mapOf(
+        "01" to ("Alabama" to "AL"),
+        "02" to ("Alaska" to "AK"),
+        "04" to ("Arizona" to "AZ"),
+        "05" to ("Arkansas" to "AR"),
+        "06" to ("California" to "CA"),
+        "08" to ("Colorado" to "CO"),
+        "09" to ("Connecticut" to "CT"),
+        "10" to ("Delaware" to "DE"),
+        "11" to ("District of Columbia" to "DC"),
+        "12" to ("Florida" to "FL"),
+        "13" to ("Georgia" to "GA"),
+        "15" to ("Hawaii" to "HI"),
+        "16" to ("Idaho" to "ID"),
+        "17" to ("Illinois" to "IL"),
+        "18" to ("Indiana" to "IN"),
+        "19" to ("Iowa" to "IA"),
+        "20" to ("Kansas" to "KS"),
+        "21" to ("Kentucky" to "KY"),
+        "22" to ("Louisiana" to "LA"),
+        "23" to ("Maine" to "ME"),
+        "24" to ("Maryland" to "MD"),
+        "25" to ("Massachusetts" to "MA"),
+        "26" to ("Michigan" to "MI"),
+        "27" to ("Minnesota" to "MN"),
+        "28" to ("Mississippi" to "MS"),
+        "29" to ("Missouri" to "MO"),
+        "30" to ("Montana" to "MT"),
+        "31" to ("Nebraska" to "NE"),
+        "32" to ("Nevada" to "NV"),
+        "33" to ("New Hampshire" to "NH"),
+        "34" to ("New Jersey" to "NJ"),
+        "35" to ("New Mexico" to "NM"),
+        "36" to ("New York" to "NY"),
+        "37" to ("North Carolina" to "NC"),
+        "38" to ("North Dakota" to "ND"),
+        "39" to ("Ohio" to "OH"),
+        "40" to ("Oklahoma" to "OK"),
+        "41" to ("Oregon" to "OR"),
+        "42" to ("Pennsylvania" to "PA"),
+        "44" to ("Rhode Island" to "RI"),
+        "45" to ("South Carolina" to "SC"),
+        "46" to ("South Dakota" to "SD"),
+        "47" to ("Tennessee" to "TN"),
+        "48" to ("Texas" to "TX"),
+        "49" to ("Utah" to "UT"),
+        "50" to ("Vermont" to "VT"),
+        "51" to ("Virginia" to "VA"),
+        "53" to ("Washington" to "WA"),
+        "54" to ("West Virginia" to "WV"),
+        "55" to ("Wisconsin" to "WI"),
+        "56" to ("Wyoming" to "WY"),
+        "60" to ("American Samoa" to "AS"),
+        "66" to ("Guam" to "GU"),
+        "69" to ("Northern Mariana Islands" to "MP"),
+        "72" to ("Puerto Rico" to "PR"),
+        "74" to ("U.S. Minor Outlying Islands" to "UM"),
+        "78" to ("U.S. Virgin Islands" to "VI"),
+    )
+
+    /** Full state name for a FIPS code, or the code itself if unrecognized. */
+    fun name(fips: String): String = byFips[fips]?.first ?: fips
+
+    /** USPS abbreviation for a FIPS code, or the code itself if unrecognized. */
+    fun abbr(fips: String): String = byFips[fips]?.second ?: fips
+}

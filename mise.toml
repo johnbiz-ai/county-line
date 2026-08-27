@@ -1,0 +1,31 @@
+# Tool management for county-line. Run `mise install` after cloning.
+# See CLAUDE.md > Tooling.
+
+[tools]
+java = "temurin-17"
+
+[env]
+# The Android SDK is not managed by mise. Set ANDROID_HOME in your shell, or add a
+# `sdk.dir=/abs/path` line to local.properties (which takes precedence for Gradle).
+# Falls back to the Android Studio default install location.
+ANDROID_HOME = "{{ env.ANDROID_HOME | default(value=env.HOME ~ '/Android/Sdk') }}"
+
+[tasks.build]
+description = "Assemble the debug APK"
+run = "./gradlew assembleDebug"
+
+[tasks.test]
+description = "Run all JVM unit tests (core + app)"
+run = "./gradlew test"
+
+[tasks."test:core"]
+description = "Run the CountyResolver unit tests only"
+run = "./gradlew :core:test"
+
+[tasks.lint]
+description = "Run Android lint"
+run = "./gradlew lint"
+
+[tasks.install]
+description = "Install the debug APK on a connected device/emulator"
+run = "./gradlew installDebug"
