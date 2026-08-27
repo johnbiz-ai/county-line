@@ -1,1 +1,19 @@
+# IDE
 .idea/
+*.iml
+
+# Gradle / build
+.gradle/
+build/
+local.properties
+/captures/
+.externalNativeBuild/
+.cxx/
+
+# Source geodata (bundled asset lives in app/src/main/assets/)
+/data/
+
+# Artifacts
+*.apk
+*.aab
+.DS_Store

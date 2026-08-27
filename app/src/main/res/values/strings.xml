@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">County Line</string>
+
+    <string name="channel_crossings_name">County crossings</string>
+    <string name="channel_crossings_desc">Alerts when you cross into a new county</string>
+    <string name="channel_service_name">Location tracking</string>
+    <string name="channel_service_desc">Ongoing notification shown while tracking your county</string>
+
+    <string name="service_notification_title">Tracking your county</string>
+    <string name="service_notification_text_unknown">Waiting for a location fix…</string>
+    <string name="service_notification_text">Currently in %1$s</string>
+
+    <string name="crossing_title">Welcome to %1$s</string>
+    <string name="crossing_text">You crossed from %1$s into %2$s, %3$s</string>
+    <string name="crossing_text_no_prev">You\'re now in %1$s, %2$s</string>
+</resources>
