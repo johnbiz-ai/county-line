@@ -30,9 +30,9 @@ won't work and links you to system settings.
 | `:core` | Pure Kotlin/JVM. `CountyResolver` + `GeoJsonCountyResolver`, geometry, `CrossingDetector`, `County`, `UsStates`. No Android dependencies — unit-tested on a plain JVM. |
 | `:app`  | Android app. Foreground service, notifications, DataStore persistence, boot receiver, permission flow, Compose status screen. |
 
-The county dataset (`plotly/datasets` `geojson-counties-fips.json`) ships gzip-compressed at
-`app/src/main/assets/counties.geojson.gz` (~884 KB). The raw source files under `data/` are
-git-ignored.
+The county dataset (`plotly/datasets` `geojson-counties-fips.json`) ships as
+`app/src/main/assets/counties.geojson` (~3 MB uncompressed; the APK's own zip entry
+compresses it to ~1 MB). The raw source files under `data/` are git-ignored.
 
 ## Building & installing
 

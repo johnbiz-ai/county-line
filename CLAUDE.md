@@ -57,10 +57,13 @@ Core loop:
 
 - Source: `plotly/datasets` `geojson-counties-fips.json` (all ~3,221 county-equivalents,
   keyed by 5-digit FIPS, `Polygon` + `MultiPolygon`, some features have `null` geometry).
-- Shipped **gzip-compressed** at `app/src/main/assets/counties.geojson.gz` (~884 KB);
-  `androidResources { noCompress += "gz" }` stops AAPT double-compressing it.
-- Raw files under `data/` are git-ignored. `:core` tests read the compressed asset via a
-  relative path (`../app/src/main/assets/...`) for the real-data integration checks.
+- Shipped **uncompressed** at `app/src/main/assets/counties.geojson` (~3 MB). Do **not**
+  gzip it: AAPT auto-gunzips and renames any `*.gz` asset at build time, so a
+  `counties.geojson.gz` source ends up as `counties.geojson` in the APK and
+  `assets.open("...gz")` throws `FileNotFoundException`. The APK's own zip entry compresses
+  it to ~1 MB regardless.
+- Raw files under `data/` are git-ignored. `:core` tests read the exact bundled asset via a
+  relative path (`../app/src/main/assets/counties.geojson`) for the real-data integration checks.
 - `GeoJsonCountyResolver` loads it once (`CountyRepository`, `Dispatchers.IO`), builds a
   `Map<cellKey, List<CountyPolygon>>` grid (1° cells), then per query does bbox pre-filter +
   even-odd ray cast. `MultiPolygon` → one `CountyPolygon` per sub-polygon; holes handled by
