@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2E7D32"/>
+      <stop offset="1" stop-color="#1B5E20"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- irregular county boundary crossing the icon -->
+  <path d="M112 40 L176 150 L128 250 L208 330 L150 472"
+        fill="none" stroke="#FFFFFF" stroke-width="16"
+        stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.55"
+        stroke-dasharray="4 34"/>
+  <path d="M112 40 L176 150 L128 250 L208 330 L150 472"
+        fill="none" stroke="#FFFFFF" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.9"/>
+  <!-- location pin -->
+  <g transform="translate(322 214)">
+    <path d="M0 150 C-70 40 -96 4 -96 -44 A96 96 0 1 1 96 -44 C96 4 70 40 0 150 Z" fill="#FFFFFF"/>
+    <circle cx="0" cy="-44" r="40" fill="#1B5E20"/>
+  </g>
+</svg>

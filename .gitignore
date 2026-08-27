@@ -17,3 +17,8 @@ build/
 *.apk
 *.aab
 .DS_Store
+
+# Signing — never commit keystores or their passwords
+keystore.properties
+*.jks
+*.keystore
