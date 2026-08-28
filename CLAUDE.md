@@ -38,7 +38,8 @@ Core loop:
   receiver, permission flow, Compose status screen. Depends on `:core`.
 - `gradle/libs.versions.toml` — version catalog; all dependency/plugin versions live here.
 - `docker/` + `docker-compose.yml` — containerised build (see Tooling).
-- `RELEASING.md`, `docs/privacy-policy.md`, `docs/store/` — Google Play submission (see Release).
+- `RELEASING.md`, `docs/` — Google Play submission (see Release). `docs/` is also the
+  GitHub Pages source (`.nojekyll`): `privacy-policy.html` + `index.html` are public.
 
 ## Tech Stack
 
@@ -146,7 +147,9 @@ No local SDK? Prefix any task with `./docker/build.sh` (see Tooling).
 - Full submission process (Play Console background-location + foreground-service
   declarations, data safety, store listing, demo video): **`RELEASING.md`**.
 - Store assets: `docs/store/` (icon, feature graphic, screenshots; `.svg` sources included).
-  Privacy policy source: `docs/privacy-policy.md` (host it; it has a contact-email placeholder).
+- Privacy policy: `docs/privacy-policy.html`, served by GitHub Pages from `/docs` at
+  `https://johnbiz-ai.github.io/county-line/privacy-policy.html`. Still has a
+  contact-email placeholder. Edit the HTML and merge to `main` to update the live page.
 
 ## Code Style
 
