@@ -177,6 +177,8 @@ the "designed for families" program.
    jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab | head
    ```
 4. Upload the `.aab` to a track (Internal testing first).
+5. In the release's **Release notes** field, paste `docs/store/whatsnew/en-US.txt`
+   (≤500 chars/language). Update that file + `CHANGELOG.md` for every user-facing release.
 
 CI alternative: set `COUNTYLINE_KEYSTORE`, `COUNTYLINE_KEYSTORE_PASSWORD`,
 `COUNTYLINE_KEY_ALIAS`, `COUNTYLINE_KEY_PASSWORD` and run `./gradlew bundleRelease`.
@@ -210,5 +212,6 @@ the **Android vitals** dashboard after launch.
 - [ ] Data safety form completed (nothing transmitted)
 - [ ] Content rating questionnaire done
 - [ ] Store listing text + icon + feature graphic + ≥2 screenshots uploaded
+- [ ] Release notes pasted from `docs/store/whatsnew/en-US.txt`; `CHANGELOG.md` updated
 - [ ] `targetSdk` meets Play's current minimum for new apps (currently 35 — already set)
 - [ ] Internal testing build installs and the full flow works
