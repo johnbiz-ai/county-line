@@ -1,0 +1,7 @@
+First release of County Line.
+
+• Get a notification the moment you cross from one US county into the next
+• Runs in the background — turn tracking on once, then close the app
+• Fully offline: every US county boundary is bundled in, and your location never leaves your device
+• Low-power location checks that go easy on your battery
+• Steady, not noisy — a crossing is confirmed over several readings before you're alerted
