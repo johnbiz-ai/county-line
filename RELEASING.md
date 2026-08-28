@@ -43,14 +43,22 @@ keystore configured, release builds fall back to the debug key so CI still works
    the signing key; you upload with the *upload* key.
 4. Note the app's package name is fixed at `net.johnbiz.countyline` once uploaded.
 
-### 1.3 Privacy policy
+### 1.3 Privacy policy (GitHub Pages)
 
-`docs/privacy-policy.md` is the source. Host it at a public URL and paste that URL into
-Play Console → **Store presence → Store listing → Privacy policy**.
+Play requires a public privacy-policy URL. The page is `docs/privacy-policy.html`
+(self-contained; `docs/.nojekyll` disables Jekyll so files are served as-is).
 
-- Fill in the contact email placeholder first.
-- Easiest hosting: enable **GitHub Pages** on this repo (Settings → Pages → source
-  `main` / `/docs`), giving `https://johnbiz-ai.github.io/county-line/privacy-policy`.
+1. Edit `docs/privacy-policy.html` — replace `apps@johnbiz.net` with a real
+   address. Merge the change to `main`.
+2. On GitHub: **Settings → Pages**. Under *Build and deployment*, set **Source =
+   "Deploy from a branch"**, **Branch = `main`**, **folder = `/docs`**, then **Save**.
+3. Wait ~1 minute; the same page shows a green "Your site is live at …" banner. The policy is
+   then at **`https://johnbiz-ai.github.io/county-line/privacy-policy.html`**
+   (`/` serves `docs/index.html`, a small landing page).
+4. Paste that URL into Play Console → **Store presence → Store listing → Privacy policy**,
+   and also into the **App content → Privacy policy** field.
+
+To update the policy later: edit the HTML, merge to `main` — Pages redeploys automatically.
 
 ---
 

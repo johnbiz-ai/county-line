@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index, follow">
+<title>County Line — Privacy Policy</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1c1c1e;
+    --muted: #5f6368;
+    --accent: #1b5e20;
+    --border: #e4e6e8;
+    --table-head: #f4f6f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121513;
+      --fg: #e6e8e6;
+      --muted: #9aa0a6;
+      --accent: #81c784;
+      --border: #2b2f2c;
+      --table-head: #1b201c;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 4rem;
+  }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .25rem; }
+  h2 {
+    font-size: 1.2rem;
+    margin: 2.25rem 0 .6rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  h2:first-of-type { border-top: 0; padding-top: 0; }
+  .updated { color: var(--muted); font-size: .9rem; margin: 0 0 2rem; }
+  p { margin: .7rem 0; }
+  a { color: var(--accent); }
+  strong { font-weight: 650; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: .95rem;
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: .6rem .7rem;
+    border: 1px solid var(--border);
+  }
+  th { background: var(--table-head); font-weight: 650; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .875rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>County Line — Privacy Policy</h1>
+  <p class="updated">Last updated: 27 August 2026</p>
+
+  <p>County Line (&ldquo;the app&rdquo;) is an Android app that notifies you when you cross
+  from one US county into another. This policy explains what data the app accesses and how
+  it is handled.</p>
+
+  <h2>Summary</h2>
+  <p><strong>County Line does not send your data anywhere.</strong> All location processing
+  happens on your device, using a county-boundary map bundled inside the app. The app has no
+  servers, no account system, no analytics, and no advertising.</p>
+
+  <h2>Data the app accesses</h2>
+  <table>
+    <thead>
+      <tr><th>Data</th><th>Why</th><th>Where it goes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Precise location</strong> (foreground and background)</td>
+        <td>To determine which US county your device is currently in and detect when that
+        changes</td>
+        <td>Used only on your device; <strong>never transmitted or shared</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Last-known county and your settings</strong> (e.g. tracking on/off)</td>
+        <td>So the app can tell when you&rsquo;ve crossed a line, and keep working after a
+        reboot</td>
+        <td>Stored in the app&rsquo;s private storage on your device only</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>The app requests <strong>background location</strong> (&ldquo;Allow all the time&rdquo;)
+  so it can detect county crossings while it is closed or not in use. This is the app&rsquo;s
+  core purpose. If you grant only &ldquo;While using the app&rdquo;, background detection is
+  disabled and the app tells you so.</p>
+
+  <h2>Data sharing and selling</h2>
+  <p>None. The app contains no third-party analytics, advertising, crash-reporting, or
+  tracking SDKs. Your location is never sold, shared, or sent off your device.</p>
+  <p>Google Play Services&rsquo; location API is used to obtain location fixes efficiently;
+  this is an on-device Android system component and the app does not send location data to
+  Google through it.</p>
+
+  <h2>Data retention and deletion</h2>
+  <p>The last-known county and your settings persist on your device until you turn tracking
+  off or uninstall the app. Uninstalling County Line permanently removes all data it stored.</p>
+
+  <h2>Children</h2>
+  <p>County Line is not directed to children and does not knowingly collect data from
+  children under 13.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>Material changes will be reflected on this page with an updated date.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: <strong>apps@johnbiz.net</strong></p>
+
+  <footer>County Line is an open-source project. Source:
+  <a href="https://github.com/johnbiz-ai/county-line">github.com/johnbiz-ai/county-line</a>.</footer>
+</main>
+</body>
+</html>
