@@ -197,6 +197,15 @@ CI alternative: set `COUNTYLINE_KEYSTORE`, `COUNTYLINE_KEYSTORE_PASSWORD`,
 Watch the **Pre-launch report** (Play runs the app on real devices) for crashes/ANRs and
 the **Android vitals** dashboard after launch.
 
+### "Upload a symbol file" warning
+
+On upload Play warns that the App Bundle contains native code without debug symbols. **It's
+safe to ignore.** The app has no native code of its own; the two `.so` files come
+pre-stripped from AndroidX (`libandroidx.graphics.path.so`, `libdatastore_shared_counter.so`,
+~5 KB each) and carry no symbol tables to extract — setting `debugSymbolLevel` produces an
+empty symbol file. App code is 100% Kotlin and is symbolicated via the ProGuard mapping
+already in the bundle.
+
 ---
 
 ## 6. Pre-submission checklist
