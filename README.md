@@ -117,8 +117,8 @@ route). Cold-start behaviour can also be checked with `adb shell am kill net.joh
 `keystore.properties` (see `keystore.properties.example`) or `COUNTYLINE_KEYSTORE*` env
 vars; with neither, it falls back to the debug key. The full Play Store process — keystore,
 Play Console declarations for background location, store listing, screenshots — is in
-[RELEASING.md](RELEASING.md). Store assets live in `docs/store/`; the privacy policy is
-`docs/privacy-policy.md`.
+[RELEASING.md](RELEASING.md). Store assets live in `docs/store/`; the privacy policy
+(`docs/privacy-policy.html`) is served via GitHub Pages from `/docs`.
 
 ## Tests
 

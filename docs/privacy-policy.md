@@ -50,4 +50,4 @@ Material changes will be reflected in this document with an updated date.
 
 ## Contact
 
-Questions about this policy: **[REPLACE WITH YOUR CONTACT EMAIL]**
+Questions about this policy: **apps@johnbiz.net*
