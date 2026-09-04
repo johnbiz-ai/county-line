@@ -134,20 +134,31 @@ You'll be asked to justify `ACCESS_BACKGROUND_LOCATION`. Suggested answers:
   (`BackgroundLocationDisclosureDialog`) stating what is collected, that access happens in
   the background, and why — *before* the OS permission prompt. Screenshot:
   `docs/store/screenshots/3-disclosure.png`.
-- **Demo video:** record a screen capture showing: open app → tap "Grant location" → grant
-  foreground → tap "Grant background location" → the disclosure dialog → "Continue" →
-  choose "Allow all the time" → toggle tracking on → the "Active" state. Upload to YouTube
-  (unlisted) and paste the link.
+- **Demo video:** `docs/store/fgs-demo.mp4` — an emulator capture of the full flow (permission
+  card → grant location → disclosure dialog → "Continue" → "Allow all the time" → allow
+  notifications → toggle tracking on → the ongoing "Tracking your county" notification).
+  Upload it to YouTube as **Unlisted** and paste the link. Ideally re-record on a real device
+  showing an actual county name once you have one.
 
 ### 3.2 App content → Foreground service permissions
 
-Declare **`FOREGROUND_SERVICE_LOCATION`**:
+Type: **Geofencing** (Background location updates). Declares `FOREGROUND_SERVICE_LOCATION`.
 
-- **Purpose:** "Continuously check the device's county in the background and post a
-  notification when it changes."
-- **User-facing:** yes — an ongoing "Tracking your county" notification is shown the whole
-  time the service runs (`Notifications.serviceNotification`).
-- Same demo video as above can be reused.
+- **Feature description:** "County Line's only feature is notifying the user when they cross
+  from one US county into another. When the user turns on 'Background tracking', a foreground
+  service keeps a low-power location subscription active, checks the device's county against a
+  bundled offline map on each update, and posts a notification when the county changes."
+- **Why a foreground service (not deferrable):** "The crossing must be detected and notified
+  promptly while the app is closed and the phone is in the user's pocket. WorkManager's 15-min
+  floor and throttled background location can't do this."
+- **User-initiated:** yes — the in-app "Background tracking" toggle; never starts on its own.
+- **User-noticeable:** yes — an ongoing "Tracking your county" notification is shown the whole
+  time the service runs (`Notifications.serviceNotification`), plus the crossing notifications.
+- **Reviewer instructions:** "Open the app; grant location → Allow all the time (after the
+  in-app disclosure) → allow notifications; turn on 'Background tracking' — the ongoing
+  notification appears. Move across a county line (or mock two locations either side) to get a
+  crossing notification."
+- **Demo video:** same `docs/store/fgs-demo.mp4` / YouTube link as §3.1.
 
 ### 3.3 Data safety
 
