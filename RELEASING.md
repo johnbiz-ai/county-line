@@ -103,14 +103,20 @@ you background detection is off.
 
 ### Graphics (`docs/store/`)
 
-| Asset | File | Spec |
+| Play Console field | Upload | Format |
 |---|---|---|
-| App icon | `icon-512.png` | 512×512, 32-bit PNG |
-| Feature graphic | `feature-graphic-1024x500.png` | 1024×500 |
-| Phone screenshots | `screenshots/1-permission.png`, `2-active.png`, `3-disclosure.png` | 1080×2400 |
+| **App icon** | `icon-512.png` | 512×512 PNG, 32-bit (alpha OK) |
+| **Feature graphic** | `feature-graphic-1024x500.png` | 1024×500 PNG/JPEG, **no alpha** |
+| **Phone screenshots** (2–8) | `screenshots/1-permission.png`, `2-active.png`, `3-disclosure.png` | 1080×2160 PNG (2:1, within Play's 320–3840 px / max-2×-min limits) |
 
-The SVG sources (`icon.svg`, `feature-graphic.svg`) are alongside the PNGs if you want to
-tweak them (`rsvg-convert -w W -h H in.svg -o out.png`).
+No tablet, TV, or Wear screenshots are needed unless you add those form factors.
+
+The SVG sources (`icon.svg`, `feature-graphic.svg`) are alongside the PNGs; re-render with
+`rsvg-convert -w W -h H in.svg -o out.png` then flatten the feature graphic to RGB
+(`python3 -c "from PIL import Image; Image.open('f.png').convert('RGB').save('f.png')"`).
+
+> Screenshots are emulator captures with dead space at the bottom — compliant, but **retake
+> them on a real device** during internal testing for a better listing.
 
 > The bundled screenshots are emulator captures — fine to launch with, but **retake them on
 > a real device** during internal testing for the best listing.
