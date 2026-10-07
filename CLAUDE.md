@@ -87,11 +87,11 @@ Core loop:
   `resolve(lat, lng): County?` — `null` means open water / outside the US / unmapped.
 - `CrossingDetector` is a **pure reducer**: `update(CrossingState, County?) -> CrossingResult`.
   It holds no state; the caller (`CountyTrackingService`) owns persistence. Hysteresis: a new
-  county must appear on `confirmations` (default 3) consecutive resolves before a crossing
+  county must appear on `confirmations` (default 2) consecutive resolves before a crossing
   fires. Returning to the current county clears the pending candidate; `null` resolves are
   ignored without disturbing state.
 - `CountyTrackingService`: `START_STICKY` foreground service, `BALANCED_POWER_ACCURACY`,
-  `INTERVAL_MS` 2 min / `MIN_DISPLACEMENT_M` 250 m. Location handling is serialized with a
+  `INTERVAL_MS` 1 min / `MIN_DISPLACEMENT_M` 250 m. Location handling is serialized with a
   `Mutex`; each fix → resolve → `CrossingDetector.update` → persist → maybe notify → refresh
   ongoing notification. Toggle via `CountyTrackingService.start/stop(context)`.
 - `LocationPermissions.readiness()` collapses permission state into a `TrackingReadiness`

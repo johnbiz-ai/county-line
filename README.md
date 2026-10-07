@@ -8,7 +8,7 @@ whenever you cross from one US county into another.
 1. You grant location permission, then **background** location ("Allow all the time"), then
    notification permission (Android 13+).
 2. A `location`-typed **foreground service** keeps a low-power location subscription alive
-   (`FusedLocationProviderClient`, balanced-power priority, ~2 min interval, 250 m minimum
+   (`FusedLocationProviderClient`, balanced-power priority, ~1 min interval, 250 m minimum
    displacement).
 3. Each fix is resolved to a county entirely **offline** by `CountyResolver`: a bundled
    GeoJSON of all ~3,221 county polygons, indexed into a coarse 1°×1° grid, then

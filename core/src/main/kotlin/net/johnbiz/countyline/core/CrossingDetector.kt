@@ -72,6 +72,6 @@ class CrossingDetector(
     }
 
     companion object {
-        const val DEFAULT_CONFIRMATIONS: Int = 3
+        const val DEFAULT_CONFIRMATIONS: Int = 2
     }
 }

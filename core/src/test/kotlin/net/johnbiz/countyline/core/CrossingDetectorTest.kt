@@ -29,6 +29,20 @@ class CrossingDetectorTest {
     }
 
     @Test
+    fun `default detector confirms a crossing on the second consecutive fix`() {
+        val detector = CrossingDetector()
+        val start = CrossingState(current = alameda)
+
+        val first = detector.update(start, contraCosta)
+        assertFalse(first.crossed)
+
+        val second = detector.update(first.state, contraCosta)
+        assertTrue(second.crossed)
+        assertEquals(alameda, second.crossedFrom)
+        assertEquals(contraCosta, second.crossedInto)
+    }
+
+    @Test
     fun `staying put never fires`() {
         val detector = CrossingDetector(confirmations = 3)
         val result = feed(detector, CrossingState(), alameda, alameda, alameda, alameda)

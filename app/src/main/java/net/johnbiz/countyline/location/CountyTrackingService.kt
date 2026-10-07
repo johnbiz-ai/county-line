@@ -156,9 +156,9 @@ class CountyTrackingService : Service() {
         private const val TAG = "CountyTracking"
         private const val ACTION_STOP = "net.johnbiz.countyline.action.STOP"
 
-        /** Target time between fixes. ~2 min balances promptness against battery. */
-        private const val INTERVAL_MS = 2 * 60 * 1000L
-        private const val FASTEST_INTERVAL_MS = 60 * 1000L
+        /** Target time between fixes. ~1 min keeps crossing alerts prompt at modest battery cost. */
+        private const val INTERVAL_MS = 60 * 1000L
+        private const val FASTEST_INTERVAL_MS = 30 * 1000L
 
         /** Skip updates while the user has moved less than this — counties are big. */
         private const val MIN_DISPLACEMENT_M = 250f
