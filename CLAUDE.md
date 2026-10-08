@@ -112,7 +112,7 @@ Core loop:
 - Run project commands through `mise exec -- <cmd>` (or `mise run <task>`) so the pinned versions are used
 - After changing `mise.toml`, run `mise install`
 - **Docker alternative** (`docker/Dockerfile`, `docker-compose.yml`): a toolchain image with
-  JDK 17 + Android SDK 36, project bind-mounted. `./docker/build.sh <gradle tasks…>` runs it
+  JDK 17 + Android SDK 37, project bind-mounted. `./docker/build.sh <gradle tasks…>` runs it
   as the host UID/GID so outputs stay host-owned. `docker/local.properties` is mounted
   read-only over the project's to force `sdk.dir=/opt/android-sdk` inside the container.
   Keep the SDK/build-tools/cmdline-tools versions here in sync with the `ARG`s in
@@ -120,7 +120,7 @@ Core loop:
 
 ## Commands
 
-Needs a JDK 17 (`mise install`) **and** an Android SDK with `platforms;android-36` +
+Needs a JDK 17 (`mise install`) **and** an Android SDK with `platforms;android-37.0` +
 `build-tools;36.0.0`. Point at it via `local.properties` (`sdk.dir=...`) or `$ANDROID_HOME`.
 No local SDK? Prefix any task with `./docker/build.sh` (see Tooling).
 
