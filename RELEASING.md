@@ -190,23 +190,44 @@ the "designed for families" program.
 
 ## 4. Build & upload
 
-1. **Bump `versionCode`** in `app/build.gradle.kts` (must strictly increase on every upload).
-   Update `versionName` for user-facing releases.
-2. Build the App Bundle:
-   ```sh
-   ./gradlew clean test lint bundleRelease
-   # -> app/build/outputs/bundle/release/app-release.aab
-   ```
-3. Sanity-check the AAB signature:
-   ```sh
-   jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab | head
-   ```
-4. Upload the `.aab` to a track (Internal testing first).
-5. In the release's **Release notes** field, paste `docs/store/whatsnew/en-US.txt`
-   (≤500 chars/language). Update that file + `CHANGELOG.md` for every user-facing release.
+Releases are automated by `.github/workflows/release.yml` ([release-please](https://github.com/googleapis/release-please)):
 
-CI alternative: set `COUNTYLINE_KEYSTORE`, `COUNTYLINE_KEYSTORE_PASSWORD`,
-`COUNTYLINE_KEY_ALIAS`, `COUNTYLINE_KEY_PASSWORD` and run `./gradlew bundleRelease`.
+1. Every push to `main` opens or updates a **`chore(release): vX.Y.Z`** PR. It bumps
+   `versionName` in `app/build.gradle.kts`, `.release-please-manifest.json`, and
+   `CHANGELOG.md`, using the Conventional Commit subjects since the last release
+   (`feat` → minor, `fix`/`perf` → patch, `!` → major; while on 0.x, breaking changes bump
+   minor). `versionCode` is derived from `versionName` (`MAJOR*10000 + MINOR*100 + PATCH`),
+   so it can't be forgotten.
+2. Before merging that PR, update `docs/store/whatsnew/en-US.txt` on the same branch if the
+   release is user-facing.
+3. Merging it creates the `vX.Y.Z` tag + GitHub Release, then the `build` job runs
+   `test lint bundleRelease assembleRelease` and attaches `county-line-vX.Y.Z.aab`, `.apk`
+   and `-mapping.txt` to the release.
+4. Download the `.aab` from the release and upload it to a track (Internal testing first).
+   Paste `docs/store/whatsnew/en-US.txt` (≤500 chars/language) into **Release notes**.
+
+To force a specific version, add a `Release-As: X.Y.Z` footer to a commit on `main`.
+
+### One-time CI setup
+
+- **Settings → Actions → General → Workflow permissions**: enable *Allow GitHub Actions to
+  create and approve pull requests* (release-please opens the release PR with `GITHUB_TOKEN`).
+- **Settings → Secrets and variables → Actions**, add:
+  - `COUNTYLINE_KEYSTORE_BASE64`: `base64 -w0 upload-keystore.jks`
+  - `COUNTYLINE_KEYSTORE_PASSWORD`, `COUNTYLINE_KEY_ALIAS`, `COUNTYLINE_KEY_PASSWORD`
+
+  Without the keystore secret the build job fails rather than publishing debug-signed
+  artifacts. After adding it, re-run the failed job; the tag and release already exist.
+
+Note: the release PR is opened with `GITHUB_TOKEN`, so it won't trigger other workflows.
+
+### Local build (fallback)
+
+```sh
+./gradlew clean test lint bundleRelease
+# -> app/build/outputs/bundle/release/app-release.aab
+jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab | head
+```
 
 ---
 
@@ -237,7 +258,7 @@ already in the bundle.
 
 - [ ] Real `upload-keystore.jks` generated and backed up; test keystore deleted
 - [ ] `keystore.properties` filled in (and still git-ignored)
-- [ ] `versionCode` bumped
+- [ ] Release PR merged; `build` job green and artifacts attached to the GitHub Release
 - [ ] `./gradlew clean test lint bundleRelease` green
 - [ ] Privacy policy hosted; URL + contact email filled in
 - [ ] Prominent disclosure verified on device before the OS prompt

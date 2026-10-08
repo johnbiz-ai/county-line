@@ -143,7 +143,11 @@ No local SDK? Prefix any task with `./docker/build.sh` (see Tooling).
   neither, release falls back to the **debug** key so CI/dev builds still succeed.
 - **Never commit** a keystore or `keystore.properties` (`.gitignore` blocks `*.jks`,
   `*.keystore`, `keystore.properties`).
-- Bump `versionCode` on **every** Play upload; it must strictly increase.
+- **Versioning + tagging are automated** (`.github/workflows/release.yml`, release-please):
+  merges to `main` maintain a `chore(release): vX.Y.Z` PR; merging it tags, creates the GitHub
+  Release, and attaches the signed `.aab`/`.apk`/mapping. Don't hand-edit `versionName`,
+  `.release-please-manifest.json`, or `CHANGELOG.md` entries. `versionCode` is derived from
+  `versionName` (`MAJOR*10000 + MINOR*100 + PATCH`), so it always increases.
 - Full submission process (Play Console background-location + foreground-service
   declarations, data safety, store listing, demo video): **`RELEASING.md`**.
 - Store assets: `docs/store/` (icon, feature graphic, screenshots; `.svg` sources included).

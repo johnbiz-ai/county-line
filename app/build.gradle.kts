@@ -18,6 +18,15 @@ val keystoreProperties = Properties().apply {
 fun signingValue(env: String, prop: String): String? =
     System.getenv(env) ?: keystoreProperties.getProperty(prop)
 
+// versionName is bumped by release-please (see release-please-config.json); don't edit it by hand.
+// versionCode is derived as MAJOR*10000 + MINOR*100 + PATCH so it strictly increases with every
+// release (Play requirement). MINOR and PATCH must stay below 100.
+val appVersionName = "0.2.1" // x-release-please-version
+val appVersionCode = appVersionName.split(".").map(String::toInt).let { (major, minor, patch) ->
+    require(minor < 100 && patch < 100) { "versionName $appVersionName overflows the versionCode scheme" }
+    major * 10_000 + minor * 100 + patch
+}
+
 android {
     namespace = "net.johnbiz.countyline"
     compileSdk = 36
@@ -26,10 +35,8 @@ android {
         applicationId = "net.johnbiz.countyline"
         minSdk = 26
         targetSdk = 36
-        // Bump versionCode on EVERY Play upload (must strictly increase); versionName is the
-        // human-facing string. See RELEASING.md.
-        versionCode = 3
-        versionName = "0.2.1"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
