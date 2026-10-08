@@ -29,7 +29,7 @@ val appVersionCode = appVersionName.split(".").map(String::toInt).let { (major, 
 
 android {
     namespace = "net.johnbiz.countyline"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "net.johnbiz.countyline"
@@ -99,7 +99,7 @@ dependencies {
     implementation(project(":core"))
 
     constraints {
-        implementation("androidx.fragment:fragment:1.8.5") {
+        implementation("androidx.fragment:fragment:1.9.1") {
             because(
                 "play-services-base drags in fragment 1.1.0; bump it past lint's " +
                     "ActivityResult floor. The app itself uses ComponentActivity, no Fragments.",
