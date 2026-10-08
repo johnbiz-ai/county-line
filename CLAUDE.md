@@ -43,7 +43,7 @@ Core loop:
 
 ## Tech Stack
 
-- Kotlin 2.0, Jetpack Compose (Material 3) for the single status/settings screen
+- Kotlin 2.4 (AGP 9 built-in Kotlin; no `kotlin-android` plugin), Gradle 9, Jetpack Compose (Material 3) for the single status/settings screen
 - `FusedLocationProviderClient` (Play Services location) via `kotlinx-coroutines-play-services`
 - **Foreground service** (`CountyTrackingService`, `foregroundServiceType="location"`) for
   background tracking — chosen over WorkManager, whose 15-min floor and throttled background
