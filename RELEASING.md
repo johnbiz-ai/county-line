@@ -210,16 +210,21 @@ To force a specific version, add a `Release-As: X.Y.Z` footer to a commit on `ma
 
 ### One-time CI setup
 
-- **Settings → Actions → General → Workflow permissions**: enable *Allow GitHub Actions to
-  create and approve pull requests* (release-please opens the release PR with `GITHUB_TOKEN`).
+- **Release PR token**: release-please opens the release PR with `RELEASE_PLEASE_TOKEN` so
+  that the PR triggers the `ci` workflow (PRs opened with the built-in `GITHUB_TOKEN` don't).
+  Create a [fine-grained PAT](https://github.com/settings/personal-access-tokens/new):
+  repository access *Only select repositories → county-line*; permissions *Contents* and
+  *Pull requests* read/write. Save it as the `RELEASE_PLEASE_TOKEN` Actions secret. It expires
+  (max 1 year): set a reminder to rotate it, since an expired token fails the
+  `release-please` job. If the secret is absent, the workflow falls back to `GITHUB_TOKEN`
+  (needs *Settings → Actions → General → Allow GitHub Actions to create and approve pull
+  requests* enabled).
 - **Settings → Secrets and variables → Actions**, add:
   - `COUNTYLINE_KEYSTORE_BASE64`: `base64 -w0 upload-keystore.jks`
   - `COUNTYLINE_KEYSTORE_PASSWORD`, `COUNTYLINE_KEY_ALIAS`, `COUNTYLINE_KEY_PASSWORD`
 
   Without the keystore secret the build job fails rather than publishing debug-signed
   artifacts. After adding it, re-run the failed job; the tag and release already exist.
-
-Note: the release PR is opened with `GITHUB_TOKEN`, so it won't trigger other workflows.
 
 ### Local build (fallback)
 
