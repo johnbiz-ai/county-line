@@ -28,8 +28,8 @@ android {
         targetSdk = 36
         // Bump versionCode on EVERY Play upload (must strictly increase); versionName is the
         // human-facing string. See RELEASING.md.
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
