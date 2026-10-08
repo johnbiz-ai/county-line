@@ -20,12 +20,12 @@ fun signingValue(env: String, prop: String): String? =
 
 android {
     namespace = "net.johnbiz.countyline"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "net.johnbiz.countyline"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         // Bump versionCode on EVERY Play upload (must strictly increase); versionName is the
         // human-facing string. See RELEASING.md.
         versionCode = 2

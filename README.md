@@ -44,7 +44,7 @@ compresses it to ~1 MB). The raw source files under `data/` are git-ignored.
   ```sh
   # one-time SDK setup
   export ANDROID_HOME="$HOME/Android/Sdk"
-  sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+  sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
   ```
   Then either export `ANDROID_HOME`, or create `local.properties` with:
   ```
@@ -53,7 +53,7 @@ compresses it to ~1 MB). The raw source files under `data/` are git-ignored.
 
 ### Docker (no local SDK needed)
 
-A build image with JDK 17 + Android SDK 35 is defined in `docker/Dockerfile`. It
+A build image with JDK 17 + Android SDK 36 is defined in `docker/Dockerfile`. It
 carries only the toolchain — the project is bind-mounted, so source edits never
 need an image rebuild.
 

@@ -9,8 +9,8 @@ FROM eclipse-temurin:17-jdk-jammy
 
 # Versions kept in sync with gradle/libs.versions.toml and CLAUDE.md.
 ARG CMDLINE_TOOLS_VERSION=13114758
-ARG ANDROID_PLATFORM=android-35
-ARG BUILD_TOOLS_VERSION=35.0.0
+ARG ANDROID_PLATFORM=android-36
+ARG BUILD_TOOLS_VERSION=36.0.0
 
 ENV ANDROID_HOME=/opt/android-sdk \
     ANDROID_SDK_ROOT=/opt/android-sdk \
