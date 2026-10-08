@@ -1,0 +1,83 @@
+name: release
+
+# On every push to main, release-please opens/updates a "chore(release): vX.Y.Z" PR that bumps
+# versionName and CHANGELOG.md from the Conventional Commit history. Merging that PR creates the
+# vX.Y.Z tag + GitHub Release, and the build job attaches the signed App Bundle and APK.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platforms;android-36 build-tools;36.0.0"
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # Refuse to publish debug-signed artifacts: without the keystore the build would fall back
+      # to the debug key (see app/build.gradle.kts).
+      - name: Restore upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.COUNTYLINE_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::COUNTYLINE_KEYSTORE_BASE64 secret is not set; refusing to publish a debug-signed release."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
+          echo "COUNTYLINE_KEYSTORE=$RUNNER_TEMP/upload-keystore.jks" >> "$GITHUB_ENV"
+
+      - name: Test, lint, build
+        env:
+          COUNTYLINE_KEYSTORE_PASSWORD: ${{ secrets.COUNTYLINE_KEYSTORE_PASSWORD }}
+          COUNTYLINE_KEY_ALIAS: ${{ secrets.COUNTYLINE_KEY_ALIAS }}
+          COUNTYLINE_KEY_PASSWORD: ${{ secrets.COUNTYLINE_KEY_PASSWORD }}
+        run: ./gradlew test lint bundleRelease assembleRelease
+
+      - name: Attach artifacts to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          out=app/build/outputs
+          cp "$out/bundle/release/app-release.aab" "county-line-$TAG.aab"
+          cp "$out/apk/release/app-release.apk" "county-line-$TAG.apk"
+          cp "$out/mapping/release/mapping.txt" "county-line-$TAG-mapping.txt"
+          gh release upload "$TAG" --clobber \
+            "county-line-$TAG.aab" "county-line-$TAG.apk" "county-line-$TAG-mapping.txt"
