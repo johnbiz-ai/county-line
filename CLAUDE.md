@@ -143,6 +143,8 @@ No local SDK? Prefix any task with `./docker/build.sh` (see Tooling).
   neither, release falls back to the **debug** key so CI/dev builds still succeed.
 - **Never commit** a keystore or `keystore.properties` (`.gitignore` blocks `*.jks`,
   `*.keystore`, `keystore.properties`).
+- **PR CI** (`.github/workflows/ci.yml`) runs `./gradlew test lint` on every PR to `main`;
+  reports are uploaded as an artifact on failure.
 - **Versioning + tagging are automated** (`.github/workflows/release.yml`, release-please):
   merges to `main` maintain a `chore(release): vX.Y.Z` PR; merging it tags, creates the GitHub
   Release, and attaches the signed `.aab`/`.apk`/mapping. Don't hand-edit `versionName`,
