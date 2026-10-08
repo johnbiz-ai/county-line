@@ -247,5 +247,5 @@ already in the bundle.
 - [ ] Content rating questionnaire done
 - [ ] Store listing text + icon + feature graphic + ≥2 screenshots uploaded
 - [ ] Release notes pasted from `docs/store/whatsnew/en-US.txt`; `CHANGELOG.md` updated
-- [ ] `targetSdk` meets Play's current minimum for new apps (currently 35 — already set)
+- [ ] `targetSdk` meets Play's current minimum for new apps (currently 36 — already set)
 - [ ] Internal testing build installs and the full flow works
