@@ -1,3 +1,1 @@
-First release.
-
-County Line notifies you the moment you cross into a new US county. It runs in the background and works fully offline — your location never leaves your device.
+Under-the-hood update: built with the latest Android libraries and tools for better compatibility and stability. No changes to how the app works.
