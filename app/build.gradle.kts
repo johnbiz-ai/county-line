@@ -21,7 +21,7 @@ fun signingValue(env: String, prop: String): String? =
 // versionName is bumped by release-please (see release-please-config.json); don't edit it by hand.
 // versionCode is derived as MAJOR*10000 + MINOR*100 + PATCH so it strictly increases with every
 // release (Play requirement). MINOR and PATCH must stay below 100.
-val appVersionName = "0.2.1" // x-release-please-version
+val appVersionName = "0.2.2" // x-release-please-version
 val appVersionCode = appVersionName.split(".").map(String::toInt).let { (major, minor, patch) ->
     require(minor < 100 && patch < 100) { "versionName $appVersionName overflows the versionCode scheme" }
     major * 10_000 + minor * 100 + patch
