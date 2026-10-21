@@ -35,13 +35,32 @@ class BootReceiver : BroadcastReceiver() {
                 val ready = LocationPermissions.hasForegroundLocation(appContext) &&
                     LocationPermissions.hasBackgroundLocation(appContext)
                 if (enabled && ready) {
-                    CountyTrackingService.start(appContext)
+                    startSafely { CountyTrackingService.start(appContext) }
                 } else if (enabled) {
-                    Log.w("BootReceiver", "Tracking was enabled but permissions are missing; not restarting.")
+                    Log.w(TAG, "Tracking was enabled but permissions are missing; not restarting.")
                 }
             } finally {
                 pendingResult.finish()
             }
+        }
+    }
+
+    companion object {
+        private const val TAG = "BootReceiver"
+
+        /**
+         * Runs [start] and reports whether the service could be started. The system can refuse a
+         * foreground-service start from the background (for example, Android 15 sends boot
+         * broadcasts when a force-stopped app is relaunched): Android 12+ throws
+         * `ForegroundServiceStartNotAllowedException` and older versions an
+         * `IllegalStateException`. Uncaught, that would crash the app from this receiver.
+         */
+        internal fun startSafely(start: () -> Unit): Boolean = try {
+            start()
+            true
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "System refused to start tracking from the background; not restarting.", e)
+            false
         }
     }
 }
