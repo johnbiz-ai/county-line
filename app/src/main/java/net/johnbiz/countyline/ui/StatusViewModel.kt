@@ -34,9 +34,20 @@ class StatusViewModel(app: Application) : AndroidViewModel(app) {
             StatusUiState(trackingEnabled = enabled, currentCounty = county, readiness = ready)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatusUiState())
 
-    /** Call from the Activity whenever permission state may have changed. */
+    /**
+     * Call from the Activity whenever permission state may have changed. Also restarts tracking
+     * if it is switched on but not running (a refused background restart), so "Active" stays true.
+     */
     fun refreshPermissions(backgroundRationaleDenied: Boolean = false) {
-        readiness.update { currentReadiness(backgroundRationaleDenied) }
+        val ready = currentReadiness(backgroundRationaleDenied)
+        readiness.update { ready }
+        viewModelScope.launch {
+            CountyTrackingService.ensureRunning(
+                getApplication(),
+                enabled = prefs.isTrackingEnabled(),
+                ready = ready == TrackingReadiness.READY,
+            )
+        }
     }
 
     /** User toggled the tracking switch. Assumes permissions are already satisfied when [enabled] is true. */

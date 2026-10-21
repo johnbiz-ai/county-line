@@ -67,6 +67,7 @@ class CountyTrackingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         fusedClient = LocationServices.getFusedLocationProviderClient(this)
         prefs = TrackingPreferences(applicationContext)
         counties = CountyRepository.get(applicationContext)
@@ -96,6 +97,7 @@ class CountyTrackingService : Service() {
     }
 
     override fun onDestroy() {
+        isRunning = false
         fusedClient.removeLocationUpdates(locationCallback)
         scope.cancel()
         super.onDestroy()
@@ -167,6 +169,25 @@ class CountyTrackingService : Service() {
 
         /** Skip updates while the user has moved less than this — counties are big. */
         private const val MIN_DISPLACEMENT_M = 250f
+
+        /** True while the service instance exists in this process; the service always runs in-process. */
+        @Volatile
+        var isRunning: Boolean = false
+            internal set
+
+        /**
+         * Starts tracking if it should be on but isn't, for example after the system refused a
+         * restart from [net.johnbiz.countyline.boot.BootReceiver]. Call while the app is in the
+         * foreground, where starting the service is allowed. Skips an already-running service,
+         * since a second start would briefly reset its notification.
+         *
+         * @return true if a start was requested.
+         */
+        fun ensureRunning(context: Context, enabled: Boolean, ready: Boolean): Boolean {
+            if (!enabled || !ready || isRunning) return false
+            start(context)
+            return true
+        }
 
         fun start(context: Context) {
             val intent = Intent(context, CountyTrackingService::class.java)
