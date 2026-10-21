@@ -1,1 +1,6 @@
-Under-the-hood update: built with the latest Android libraries and tools for better compatibility and stability. No changes to how the app works.
+New: county details.
+• Crossing alerts now show the new county's outline, 2020 Census population and density, and a "Things to do" button that opens Google Maps.
+• Tap an alert, or your current county in the app, for a details page with links to Wikipedia and Wikivoyage.
+• Fixed a crash that could happen when Android declined to restart tracking.
+
+County Line still works fully offline. Links open only when you tap them.
