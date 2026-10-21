@@ -3,13 +3,21 @@ package net.johnbiz.countyline.notify
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.TaskStackBuilder
+import androidx.core.net.toUri
+import net.johnbiz.countyline.CountyDetailActivity
 import net.johnbiz.countyline.MainActivity
 import net.johnbiz.countyline.R
 import net.johnbiz.countyline.core.County
+import net.johnbiz.countyline.core.CountyFactsFormat
+import net.johnbiz.countyline.county.CountyLinks
+import java.util.Locale
 
 object Notifications {
     const val CHANNEL_CROSSINGS = "county_crossings"
@@ -57,29 +65,62 @@ object Notifications {
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
+    /**
+     * Posts the crossing alert. With [details], it shows the county outline and facts; without,
+     * it falls back to plain text. Either way, tapping opens the county's detail screen and the
+     * "Things to do" action opens Google Maps.
+     */
     @SuppressLint("MissingPermission") // caller guarantees POST_NOTIFICATIONS on API 33+
-    fun postCrossing(context: Context, from: County?, to: County) {
-        val text = if (from != null) {
+    fun postCrossing(context: Context, from: County?, to: County, details: CrossingDetails? = null) {
+        val base = if (from != null) {
             context.getString(R.string.crossing_text, from.displayName, to.name, to.stateName)
         } else {
             context.getString(R.string.crossing_text_no_prev, to.name, to.stateName)
         }
+        val summary = details?.facts?.let { CountyFactsFormat.summary(it, Locale.getDefault()) }
+        val text = if (summary != null) "$base · $summary" else base
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_CROSSINGS)
+        val builder = NotificationCompat.Builder(context, CHANNEL_CROSSINGS)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.crossing_title, to.name))
             .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-            .setContentIntent(contentIntent(context))
+            .setContentIntent(detailIntent(context, to.fips))
+            .addAction(0, context.getString(R.string.action_things_to_do), thingsToDoIntent(context, to, details))
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_NAVIGATION)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .build()
+
+        details?.outlineIcon?.let { builder.setLargeIcon(it) }
+        val picture = details?.outlinePicture
+        if (picture != null) {
+            builder.setStyle(
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(picture)
+                    .bigLargeIcon(null as Bitmap?)
+                    .setSummaryText(text),
+            )
+        } else {
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(text))
+        }
 
         if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-            NotificationManagerCompat.from(context).notify(CROSSING_NOTIFICATION_ID, notification)
+            NotificationManagerCompat.from(context).notify(CROSSING_NOTIFICATION_ID, builder.build())
         }
     }
+
+    /** Back from the detail screen returns to the status screen. Request code keyed by FIPS so extras never collide. */
+    private fun detailIntent(context: Context, fips: String): PendingIntent =
+        TaskStackBuilder.create(context)
+            .addNextIntentWithParentStack(CountyDetailActivity.intent(context, fips))
+            .getPendingIntent(fips.toInt(), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)!!
+
+    private fun thingsToDoIntent(context: Context, county: County, details: CrossingDetails?): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            county.fips.toInt(),
+            Intent(Intent.ACTION_VIEW, CountyLinks.thingsToDo(county, details?.facts?.kind).toUri()),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
 
     private fun contentIntent(context: Context) = android.app.PendingIntent.getActivity(
         context,

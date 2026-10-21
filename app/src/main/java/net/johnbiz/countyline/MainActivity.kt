@@ -59,6 +59,7 @@ class MainActivity : ComponentActivity() {
                     onGrantClick = ::advancePermissionFlow,
                     onOpenSettings = ::openAppSettings,
                     onToggleTracking = viewModel::setTracking,
+                    onOpenCountyDetails = { startActivity(CountyDetailActivity.intent(this, it.fips)) },
                 )
                 if (showBackgroundDisclosure) {
                     BackgroundLocationDisclosureDialog(

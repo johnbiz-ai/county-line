@@ -27,6 +27,7 @@ import kotlinx.coroutines.sync.withLock
 import net.johnbiz.countyline.county.CountyRepository
 import net.johnbiz.countyline.core.CrossingDetector
 import net.johnbiz.countyline.data.TrackingPreferences
+import net.johnbiz.countyline.notify.CrossingDetailsLoader
 import net.johnbiz.countyline.notify.Notifications
 
 /**
@@ -54,6 +55,7 @@ class CountyTrackingService : Service() {
     private lateinit var fusedClient: FusedLocationProviderClient
     private lateinit var prefs: TrackingPreferences
     private lateinit var counties: CountyRepository
+    private lateinit var crossingDetails: CrossingDetailsLoader
     private val detector = CrossingDetector()
 
     private val locationCallback = object : LocationCallback() {
@@ -68,6 +70,7 @@ class CountyTrackingService : Service() {
         fusedClient = LocationServices.getFusedLocationProviderClient(this)
         prefs = TrackingPreferences(applicationContext)
         counties = CountyRepository.get(applicationContext)
+        crossingDetails = CrossingDetailsLoader(facts = counties::facts, catalog = counties::catalog)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -132,7 +135,9 @@ class CountyTrackingService : Service() {
         prefs.saveCrossingState(result.state)
 
         if (result.crossed) {
-            Notifications.postCrossing(this, from = result.crossedFrom, to = result.crossedInto!!)
+            val to = result.crossedInto!!
+            // Already on Dispatchers.Default, so rendering the outline stays off the main thread.
+            Notifications.postCrossing(this, from = result.crossedFrom, to = to, details = crossingDetails.load(to.fips))
         }
         updateServiceNotification()
     }

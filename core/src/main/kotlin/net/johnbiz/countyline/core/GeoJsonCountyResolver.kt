@@ -33,9 +33,14 @@ import kotlin.math.floor
  */
 class GeoJsonCountyResolver private constructor(
     private val grid: Map<Long, List<CountyPolygon>>,
+    private val catalog: Map<String, CatalogEntry>,
+) : CountyResolver, CountyCatalog {
+
     /** Number of distinct counties successfully loaded. */
-    val countyCount: Int,
-) : CountyResolver {
+    val countyCount: Int get() = catalog.size
+
+    /** FIPS codes of every county with geometry. */
+    val fipsCodes: Set<String> get() = catalog.keys
 
     override fun resolve(lat: Double, lng: Double): County? {
         val candidates = grid[cellKey(cell(lat), cell(lng))] ?: return null
@@ -44,6 +49,12 @@ class GeoJsonCountyResolver private constructor(
         }
         return null
     }
+
+    override fun county(fips: String): County? = catalog[fips]?.county
+
+    override fun outline(fips: String): List<DoubleArray>? = catalog[fips]?.rings
+
+    private class CatalogEntry(val county: County, val rings: List<DoubleArray>)
 
     companion object {
         /** Grid cell size in degrees. ~1° ≈ 111 km N/S; a reasonable bucket size for the US. */
@@ -66,7 +77,8 @@ class GeoJsonCountyResolver private constructor(
 
         private fun fromFeatureCollection(fc: FeatureCollection): GeoJsonCountyResolver {
             val grid = HashMap<Long, MutableList<CountyPolygon>>()
-            val counties = HashSet<String>()
+            val rings = HashMap<String, MutableList<DoubleArray>>()
+            val counties = HashMap<String, County>()
 
             for (feature in fc.features) {
                 val geometry = feature.geometry ?: continue
@@ -80,17 +92,17 @@ class GeoJsonCountyResolver private constructor(
                     stateAbbr = UsStates.abbr(props.state),
                 )
 
-                for (rings in geometry.polygons()) {
-                    if (rings.isEmpty()) continue
-                    val polygon = CountyPolygon.of(county, rings)
-                    index(grid, polygon)
-                    counties += fips
+                for (polygonRings in geometry.polygons()) {
+                    if (polygonRings.isEmpty()) continue
+                    index(grid, CountyPolygon.of(county, polygonRings))
+                    counties[fips] = county
+                    rings.getOrPut(fips) { ArrayList() } += polygonRings
                 }
             }
 
             return GeoJsonCountyResolver(
                 grid = grid.mapValues { (_, v) -> v.toList() },
-                countyCount = counties.size,
+                catalog = counties.mapValues { (fips, county) -> CatalogEntry(county, rings.getValue(fips)) },
             )
         }
 
