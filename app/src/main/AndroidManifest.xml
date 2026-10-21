@@ -35,6 +35,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".CountyDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.CountyLine" />
+
         <service
             android:name=".location.CountyTrackingService"
             android:exported="false"

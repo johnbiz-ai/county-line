@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -21,9 +22,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import net.johnbiz.countyline.R
 import net.johnbiz.countyline.core.County
 import net.johnbiz.countyline.location.TrackingReadiness
 
@@ -33,6 +36,7 @@ fun StatusScreen(
     onGrantClick: () -> Unit,
     onOpenSettings: () -> Unit,
     onToggleTracking: (Boolean) -> Unit,
+    onOpenCountyDetails: (County) -> Unit,
 ) {
     Scaffold { innerPadding ->
         Column(
@@ -45,7 +49,7 @@ fun StatusScreen(
         ) {
             Text("County Line", style = MaterialTheme.typography.headlineMedium)
 
-            CurrentCountyCard(state.currentCounty)
+            CurrentCountyCard(state.currentCounty, onOpenCountyDetails)
 
             PermissionCard(
                 readiness = state.readiness,
@@ -64,16 +68,26 @@ fun StatusScreen(
 }
 
 @Composable
-private fun CurrentCountyCard(county: County?) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(20.dp)) {
-            Text("Current county", style = MaterialTheme.typography.labelMedium)
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = county?.let { "${it.name}\n${it.stateName}" } ?: "Unknown — waiting for a fix",
-                style = MaterialTheme.typography.titleLarge,
-            )
+private fun CurrentCountyCard(county: County?, onOpenDetails: (County) -> Unit) {
+    val body: @Composable () -> Unit = {
+        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Current county", style = MaterialTheme.typography.labelMedium)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = county?.let { "${it.name}\n${it.stateName}" } ?: "Unknown — waiting for a fix",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+            if (county != null) {
+                Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = "View county details")
+            }
         }
+    }
+    if (county != null) {
+        Card(onClick = { onOpenDetails(county) }, modifier = Modifier.fillMaxWidth()) { body() }
+    } else {
+        Card(Modifier.fillMaxWidth()) { body() }
     }
 }
 
@@ -172,6 +186,7 @@ private fun StatusScreenPreview() {
             onGrantClick = {},
             onOpenSettings = {},
             onToggleTracking = {},
+            onOpenCountyDetails = {},
         )
     }
 }

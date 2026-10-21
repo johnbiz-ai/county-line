@@ -14,4 +14,6 @@
     <string name="crossing_title">Welcome to %1$s</string>
     <string name="crossing_text">You crossed from %1$s into %2$s, %3$s</string>
     <string name="crossing_text_no_prev">You\'re now in %1$s, %2$s</string>
+
+    <string name="action_things_to_do">Things to do</string>
 </resources>

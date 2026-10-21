@@ -3,6 +3,7 @@ package net.johnbiz.countyline.core
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
@@ -91,6 +92,32 @@ class GeoJsonCountyResolverTest {
         assertEquals("Alpha, NY", alpha.displayName)
     }
 
+    @Test
+    fun `catalog looks up counties by FIPS`() {
+        val r = synthetic()
+        assertEquals("Alpha", r.county("36001")?.name)
+        assertEquals("TX", r.county("48003")?.stateAbbr)
+        assertNull(r.county("99999"))
+    }
+
+    @Test
+    fun `catalog omits features with null geometry`() {
+        val r = synthetic()
+        assertNull(r.county("51005"))
+        assertNull(r.outline("51005"))
+        assertEquals(setOf("36001", "06002", "48003", "12004"), r.fipsCodes)
+    }
+
+    @Test
+    fun `outline returns every ring of every sub-polygon`() {
+        val r = synthetic()
+        assertEquals(1, r.outline("36001")!!.size)  // Alpha: one simple polygon
+        assertEquals(2, r.outline("48003")!!.size)  // Charlie: outer ring + hole
+        assertEquals(2, r.outline("12004")!!.size)  // Delta: two landmasses
+        assertTrue(r.outline("12004")!!.all { it.size >= 8 && it.size % 2 == 0 })
+        assertNull(r.outline("99999"))
+    }
+
     // --- Real bundled dataset: fixture coordinates near known county borders --------------------
 
     /** The exact asset the app bundles, resolved relative to the `core/` module dir at test time. */
@@ -140,6 +167,25 @@ class GeoJsonCountyResolverTest {
         assertNull(r.resolve(30.0, -140.0)) // Pacific
         assertNull(r.resolve(26.0, -90.0))  // Gulf of Mexico
         assertNull(r.resolve(43.65, -79.38)) // Toronto, Canada
+    }
+
+    @Test
+    fun `real dataset catalog finds counties and outlines`() {
+        val r = realResolver()
+        assertEquals("Johnson", r.county("20091")?.name)
+        assertEquals("KS", r.county("20091")?.stateAbbr)
+        assertNotNull(r.outline("02016")) // Aleutians West
+        assertEquals(3221, r.fipsCodes.size)
+    }
+
+    @Test
+    fun `every county in the dataset has a facts row`() {
+        val r = realResolver()
+        val factsFile = File("../app/src/main/assets/county-facts.csv")
+        assertTrue("facts asset missing at $factsFile", factsFile.exists())
+        val facts = factsFile.inputStream().use { CountyFactsTable.parse(it) }
+        val missing = r.fipsCodes.filter { facts[it] == null }
+        assertEquals("FIPS without a facts row", emptyList<String>(), missing)
     }
 
     private fun assertResolves(
