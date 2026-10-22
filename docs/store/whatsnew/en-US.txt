@@ -1,1 +1,1 @@
-Tracking now restarts automatically when you open the app if Android had stopped it, so "Active" always means County Line is watching.
+"Things to do" on a crossing alert now clears the alert, and back from Maps takes you to the county's details. The county details screen no longer crashes if map data fails to load, and the county outline is now read aloud by screen readers.
