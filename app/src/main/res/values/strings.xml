@@ -21,6 +21,7 @@
     <string name="status_county_value">%1$s\n%2$s</string>
     <string name="status_county_unknown">Unknown — waiting for a fix</string>
     <string name="status_view_county_details">View county details</string>
+    <string name="status_version">Version %1$s</string>
 
     <string name="permission_foreground_title">Location permission needed</string>
     <string name="permission_foreground_body">County Line needs location access to tell which county you\'re in.</string>
