@@ -17,6 +17,35 @@
 
     <string name="action_things_to_do">Things to do</string>
 
+    <string name="status_current_county">Current county</string>
+    <string name="status_county_value">%1$s\n%2$s</string>
+    <string name="status_county_unknown">Unknown — waiting for a fix</string>
+    <string name="status_view_county_details">View county details</string>
+
+    <string name="permission_foreground_title">Location permission needed</string>
+    <string name="permission_foreground_body">County Line needs location access to tell which county you\'re in.</string>
+    <string name="permission_foreground_action">Grant location</string>
+    <string name="permission_background_title">Allow all the time</string>
+    <string name="permission_background_body">To detect crossings while the app is closed, set location access to \"Allow all the time\".</string>
+    <string name="permission_background_action">Grant background location</string>
+    <string name="permission_foreground_only_title">Background tracking is off</string>
+    <string name="permission_foreground_only_body">Location is set to \"While using the app\", so crossings won\'t be detected in the background. Open settings and choose \"Allow all the time\".</string>
+    <string name="permission_foreground_only_action">Open settings</string>
+    <string name="permission_notifications_title">Notifications are blocked</string>
+    <string name="permission_notifications_body">County Line can\'t alert you about crossings until notifications are allowed.</string>
+    <string name="permission_notifications_action">Allow notifications</string>
+
+    <string name="tracking_title">Background tracking</string>
+    <string name="tracking_active">Active — you\'ll get a notification each time you cross a county line.</string>
+    <string name="tracking_paused">Enabled, but paused until permissions are granted.</string>
+    <string name="tracking_off">Off. Turn on to start watching for county crossings.</string>
+
+    <!-- Google Play prominent disclosure for background location; see RELEASING.md before editing. -->
+    <string name="disclosure_title">County Line uses location in the background</string>
+    <string name="disclosure_body">To alert you when you cross into a new county, County Line checks your device\'s location even when the app is closed or not in use.\n\nYour location is used only on this device to look up which county you\'re in. It is never sent anywhere, saved off your device, or shared.\n\nOn the next screen, choose \"Allow all the time\" to enable this.</string>
+    <string name="disclosure_continue">Continue</string>
+    <string name="disclosure_not_now">Not now</string>
+
     <string name="detail_back">Back</string>
     <string name="detail_not_found">We couldn\'t find details for this county.</string>
     <string name="detail_wikipedia">Wikipedia</string>
