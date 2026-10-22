@@ -1,6 +1,8 @@
 package net.johnbiz.countyline.core
 
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -92,6 +94,34 @@ class OutlineProjectionTest {
             assertTrue(out.all { it.isFinite() && it >= 0f && it <= 100f })
         }
         assertEquals(emptyList<FloatArray>(), OutlineProjection.fit(emptyList(), 100f, 100f, 0f))
+    }
+
+    @Test
+    fun `point is placed with the same transform as the rings`() {
+        val rings = listOf(rect(0.0, -0.5, 2.0, 0.5))
+        // Wide box fills the width (0..100) and sits at 25..75 vertically.
+        assertArrayEquals(floatArrayOf(50f, 50f), OutlineProjection.point(rings, 1.0, 0.0, 100f, 100f, padding = 0f), 0.05f)
+        assertArrayEquals(floatArrayOf(0f, 25f), OutlineProjection.point(rings, 0.0, 0.5, 100f, 100f, padding = 0f), 0.05f)
+    }
+
+    @Test
+    fun `point respects padding`() {
+        val rings = listOf(rect(0.0, 0.0, 1.0, 1.0))
+        assertArrayEquals(floatArrayOf(90f, 90f), OutlineProjection.point(rings, 1.0, 0.0, 100f, 100f, padding = 10f), 0.05f)
+    }
+
+    @Test
+    fun `point is unwrapped with a shape crossing the antimeridian`() {
+        val ring = doubleArrayOf(179.0, 50.0, -179.0, 50.0, -179.0, 51.0, 179.0, 51.0, 179.0, 50.0)
+        val ringX = bounds(OutlineProjection.fit(listOf(ring), 100f, 100f, padding = 0f))
+        val east = OutlineProjection.point(listOf(ring), 179.5, 50.5, 100f, 100f, padding = 0f)!!
+        val west = OutlineProjection.point(listOf(ring), -179.5, 50.5, 100f, 100f, padding = 0f)!!
+        assertTrue(east[0] > ringX.minX && east[0] < west[0] && west[0] < ringX.maxX)
+    }
+
+    @Test
+    fun `point without rings is null`() {
+        assertNull(OutlineProjection.point(emptyList(), 0.0, 0.0, 100f, 100f, padding = 0f))
     }
 
     @Test
