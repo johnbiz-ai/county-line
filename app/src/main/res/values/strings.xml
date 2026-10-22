@@ -16,4 +16,17 @@
     <string name="crossing_text_no_prev">You\'re now in %1$s, %2$s</string>
 
     <string name="action_things_to_do">Things to do</string>
+
+    <string name="detail_back">Back</string>
+    <string name="detail_not_found">We couldn\'t find details for this county.</string>
+    <string name="detail_wikipedia">Wikipedia</string>
+    <string name="detail_wikivoyage">Wikivoyage</string>
+    <string name="detail_attribution">Population: 2020 U.S. Census. Boundaries and area: U.S. Census Bureau.</string>
+    <string name="detail_population">Population</string>
+    <string name="detail_land_area">Land area</string>
+    <string name="detail_density">Density</string>
+    <string name="detail_area_value">%1$s sq mi</string>
+    <string name="detail_density_value">%1$s/sq mi</string>
+    <string name="detail_outline_description">Outline of %1$s</string>
+    <string name="detail_no_app_for_link">No app can open this link</string>
 </resources>

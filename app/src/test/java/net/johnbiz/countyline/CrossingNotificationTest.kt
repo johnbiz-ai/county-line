@@ -65,9 +65,11 @@ class CrossingNotificationTest {
 
         val action = n.actions.single()
         assertEquals("Things to do", action.title.toString())
-        val view = shadowOf(action.actionIntent).savedIntent
-        assertEquals(Intent.ACTION_VIEW, view.action)
-        assertTrue(view.dataString!!.contains("Johnson%20County%2C%20KS"))
+        // Routed through the detail screen so the alert can be dismissed; back from Maps lands there.
+        val open = shadowOf(action.actionIntent).savedIntents.last()
+        assertEquals(CountyDetailActivity::class.java.name, open.component!!.className)
+        assertEquals("20091", open.getStringExtra(CountyDetailActivity.EXTRA_FIPS))
+        assertTrue(open.getStringExtra(CountyDetailActivity.EXTRA_OPEN_URL)!!.contains("Johnson%20County%2C%20KS"))
     }
 
     @Test
@@ -76,6 +78,7 @@ class CrossingNotificationTest {
         val intent = contentIntentOf(posted())
         assertEquals(CountyDetailActivity::class.java.name, intent.component!!.className)
         assertEquals("20091", intent.getStringExtra(CountyDetailActivity.EXTRA_FIPS))
+        assertNull(intent.getStringExtra(CountyDetailActivity.EXTRA_OPEN_URL))
     }
 
     @Test
