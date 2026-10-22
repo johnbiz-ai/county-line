@@ -10,7 +10,6 @@ import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
-import androidx.core.net.toUri
 import net.johnbiz.countyline.CountyDetailActivity
 import net.johnbiz.countyline.MainActivity
 import net.johnbiz.countyline.R
@@ -27,6 +26,8 @@ object Notifications {
     const val SERVICE_NOTIFICATION_ID = 1
 
     private const val CROSSING_NOTIFICATION_ID = 2
+
+    private const val ACTION_THINGS_TO_DO = "net.johnbiz.countyline.action.THINGS_TO_DO"
 
     fun createChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
@@ -68,7 +69,7 @@ object Notifications {
     /**
      * Posts the crossing alert. With [details], it shows the county outline and facts; without,
      * it falls back to plain text. Either way, tapping opens the county's detail screen and the
-     * "Things to do" action opens Google Maps.
+     * "Things to do" action opens Google Maps from it, dismissing the alert.
      */
     @SuppressLint("MissingPermission") // caller guarantees POST_NOTIFICATIONS on API 33+
     fun postCrossing(context: Context, from: County?, to: County, details: CrossingDetails? = null) {
@@ -108,19 +109,30 @@ object Notifications {
         }
     }
 
+    /** Dismisses the crossing alert; action taps don't auto-cancel it. */
+    fun cancelCrossing(context: Context) = NotificationManagerCompat.from(context).cancel(CROSSING_NOTIFICATION_ID)
+
     /** Back from the detail screen returns to the status screen. Request code keyed by FIPS so extras never collide. */
     private fun detailIntent(context: Context, fips: String): PendingIntent =
-        TaskStackBuilder.create(context)
-            .addNextIntentWithParentStack(CountyDetailActivity.intent(context, fips))
-            .getPendingIntent(fips.toInt(), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)!!
+        backStackIntent(context, CountyDetailActivity.intent(context, fips), fips)
 
+    /**
+     * Opens Maps via the detail screen rather than directly, so the screen can dismiss the alert
+     * (a direct `ACTION_VIEW` can't) and back from Maps lands on the county's details.
+     */
     private fun thingsToDoIntent(context: Context, county: County, details: CrossingDetails?): PendingIntent =
-        PendingIntent.getActivity(
+        backStackIntent(
             context,
-            county.fips.toInt(),
-            Intent(Intent.ACTION_VIEW, CountyLinks.thingsToDo(county, details?.facts?.kind).toUri()),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            CountyDetailActivity.intent(context, county.fips)
+                .setAction(ACTION_THINGS_TO_DO) // distinct from the content intent, so extras don't collide
+                .putExtra(CountyDetailActivity.EXTRA_OPEN_URL, CountyLinks.thingsToDo(county, details?.facts?.kind)),
+            county.fips,
         )
+
+    private fun backStackIntent(context: Context, intent: Intent, fips: String): PendingIntent =
+        TaskStackBuilder.create(context)
+            .addNextIntentWithParentStack(intent)
+            .getPendingIntent(fips.toInt(), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)!!
 
     private fun contentIntent(context: Context) = android.app.PendingIntent.getActivity(
         context,

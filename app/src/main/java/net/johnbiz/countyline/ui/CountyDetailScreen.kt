@@ -1,10 +1,10 @@
 package net.johnbiz.countyline.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,12 +24,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -59,7 +63,7 @@ fun CountyDetailScreen(
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = "Back")
+                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.detail_back))
                     }
                 },
             )
@@ -74,8 +78,8 @@ fun CountyDetailScreen(
                 modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text("We couldn't find details for this county.", style = MaterialTheme.typography.bodyLarge)
-                OutlinedButton(onClick = onBack) { Text("Back") }
+                Text(stringResource(R.string.detail_not_found), style = MaterialTheme.typography.bodyLarge)
+                OutlinedButton(onClick = onBack) { Text(stringResource(R.string.detail_back)) }
             }
             is CountyDetailUiState.Loaded -> CountyDetailContent(state.detail, onOpenLink, modifier)
         }
@@ -90,21 +94,24 @@ private fun CountyDetailContent(detail: CountyDetail, onOpenLink: (String) -> Un
         modifier.padding(24.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        detail.outline?.let { CountyOutline(it, Modifier.fillMaxWidth().aspectRatio(4f / 3f)) }
+        val outlineLabel = stringResource(R.string.detail_outline_description, "${county.fullName(kind)}, ${county.stateAbbr}")
+        detail.outline?.let {
+            CountyOutline(it, Modifier.fillMaxWidth().aspectRatio(4f / 3f).semantics { contentDescription = outlineLabel })
+        }
         detail.facts?.let { FactsRow(it) }
         Button(onClick = { onOpenLink(CountyLinks.thingsToDo(county, kind)) }, Modifier.fillMaxWidth()) {
-            Text("Things to do")
+            Text(stringResource(R.string.action_things_to_do))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(onClick = { onOpenLink(CountyLinks.wikipedia(county, kind)) }, Modifier.weight(1f)) {
-                Text("Wikipedia")
+                Text(stringResource(R.string.detail_wikipedia))
             }
             OutlinedButton(onClick = { onOpenLink(CountyLinks.wikivoyage(county, kind)) }, Modifier.weight(1f)) {
-                Text("Wikivoyage")
+                Text(stringResource(R.string.detail_wikivoyage))
             }
         }
         Text(
-            "Population: 2020 U.S. Census. Boundaries and area: U.S. Census Bureau.",
+            stringResource(R.string.detail_attribution),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -115,9 +122,15 @@ private fun CountyDetailContent(detail: CountyDetail, onOpenLink: (String) -> Un
 private fun FactsRow(facts: CountyFacts) {
     val locale = LocalLocale.current.platformLocale
     val items = listOfNotNull(
-        facts.population?.let { "Population" to CountyFactsFormat.count(it, locale) },
-        facts.landSqMi?.let { "Land area" to "${CountyFactsFormat.measure(it, locale)} sq mi" },
-        facts.density?.let { "Density" to "${CountyFactsFormat.measure(it, locale)}/sq mi" },
+        facts.population?.let { stringResource(R.string.detail_population) to CountyFactsFormat.count(it, locale) },
+        facts.landSqMi?.let {
+            stringResource(R.string.detail_land_area) to
+                stringResource(R.string.detail_area_value, CountyFactsFormat.measure(it, locale))
+        },
+        facts.density?.let {
+            stringResource(R.string.detail_density) to
+                stringResource(R.string.detail_density_value, CountyFactsFormat.measure(it, locale))
+        },
     )
     if (items.isEmpty()) return
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -130,27 +143,32 @@ private fun FactsRow(facts: CountyFacts) {
     }
 }
 
-/** Draws a county outline in theme colors; even-odd fill keeps holes empty. */
+/** Draws a county outline in theme colors; even-odd fill keeps holes empty. The path is rebuilt only on resize. */
 @Composable
 private fun CountyOutline(rings: List<DoubleArray>, modifier: Modifier = Modifier) {
     val stroke = MaterialTheme.colorScheme.primary
     val fill = stroke.copy(alpha = 0.25f)
-    Canvas(modifier) {
-        val projected = OutlineProjection.fit(rings, size.width, size.height, padding = 16.dp.toPx())
-        val path = Path().apply { fillType = PathFillType.EvenOdd }
-        for (ring in projected) {
-            if (ring.size < 4) continue
-            path.moveTo(ring[0], ring[1])
-            var i = 2
-            while (i + 1 < ring.size) {
-                path.lineTo(ring[i], ring[i + 1])
-                i += 2
+    Spacer(
+        modifier.drawWithCache {
+            val projected = OutlineProjection.fit(rings, size.width, size.height, padding = 16.dp.toPx())
+            val path = Path().apply { fillType = PathFillType.EvenOdd }
+            for (ring in projected) {
+                if (ring.size < 4) continue
+                path.moveTo(ring[0], ring[1])
+                var i = 2
+                while (i + 1 < ring.size) {
+                    path.lineTo(ring[i], ring[i + 1])
+                    i += 2
+                }
+                path.close()
             }
-            path.close()
-        }
-        drawPath(path, fill)
-        drawPath(path, stroke, style = Stroke(width = 2.dp.toPx(), join = StrokeJoin.Round))
-    }
+            val strokeWidth = 2.dp.toPx()
+            onDrawBehind {
+                drawPath(path, fill)
+                drawPath(path, stroke, style = Stroke(width = strokeWidth, join = StrokeJoin.Round))
+            }
+        },
+    )
 }
 
 @Preview(showBackground = true)

@@ -50,6 +50,13 @@ class CountyDetailViewModelTest {
     }
 
     @Test
+    fun `a dataset that fails to load shows not found instead of crashing`() = runTest(dispatcher) {
+        val vm = CountyDetailViewModel("20091", CountyDetailSource { throw java.io.IOException("counties.geojson") })
+        advanceUntilIdle()
+        assertEquals(CountyDetailUiState.NotFound, vm.uiState.value)
+    }
+
+    @Test
     fun `passes the FIPS through to the source`() = runTest(dispatcher) {
         var requested: String? = null
         CountyDetailViewModel("06037", CountyDetailSource { requested = it; null })

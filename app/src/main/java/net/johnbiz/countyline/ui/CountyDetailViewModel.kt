@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.johnbiz.countyline.county.CountyDetail
 import net.johnbiz.countyline.county.CountyDetailSource
+import kotlin.coroutines.cancellation.CancellationException
 
 sealed interface CountyDetailUiState {
     data object Loading : CountyDetailUiState
@@ -22,7 +23,15 @@ class CountyDetailViewModel(fips: String, source: CountyDetailSource) : ViewMode
 
     init {
         viewModelScope.launch {
-            state.value = source.load(fips)?.let(CountyDetailUiState::Loaded) ?: CountyDetailUiState.NotFound
+            // A dataset that fails to load is shown as not found rather than crashing the screen.
+            val detail = try {
+                source.load(fips)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
+            state.value = detail?.let(CountyDetailUiState::Loaded) ?: CountyDetailUiState.NotFound
         }
     }
 }
