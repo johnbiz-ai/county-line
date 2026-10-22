@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val versionName = packageManager.getPackageInfo(packageName, 0).versionName.orEmpty()
         setContent {
             CountyLineTheme {
                 val state by viewModel.uiState.collectAsState()
@@ -60,6 +61,7 @@ class MainActivity : ComponentActivity() {
                     onOpenSettings = ::openAppSettings,
                     onToggleTracking = viewModel::setTracking,
                     onOpenCountyDetails = { startActivity(CountyDetailActivity.intent(this, it.fips)) },
+                    versionName = versionName,
                 )
                 if (showBackgroundDisclosure) {
                     BackgroundLocationDisclosureDialog(
