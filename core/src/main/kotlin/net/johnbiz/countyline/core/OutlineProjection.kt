@@ -16,45 +16,73 @@ object OutlineProjection {
     private const val MIN_SPAN = 1e-9
 
     fun fit(rings: List<DoubleArray>, width: Float, height: Float, padding: Float): List<FloatArray> {
-        if (rings.none { it.size >= 2 }) return emptyList()
-
-        var minLng = Double.POSITIVE_INFINITY
-        var maxLng = Double.NEGATIVE_INFINITY
-        var minLat = Double.POSITIVE_INFINITY
-        var maxLat = Double.NEGATIVE_INFINITY
-        forEachPoint(rings) { lng, lat ->
-            minLng = min(minLng, lng); maxLng = maxOf(maxLng, lng)
-            minLat = min(minLat, lat); maxLat = maxOf(maxLat, lat)
-        }
-
-        val unwrap = maxLng - minLng > 180.0
-        if (unwrap) {
-            minLng = Double.POSITIVE_INFINITY
-            maxLng = Double.NEGATIVE_INFINITY
-            forEachPoint(rings) { lng, _ ->
-                val x = unwrapped(lng)
-                minLng = min(minLng, x); maxLng = maxOf(maxLng, x)
-            }
-        }
-
-        val kx = cos(Math.toRadians((minLat + maxLat) / 2))
-        val spanX = ((maxLng - minLng) * kx).coerceAtLeast(MIN_SPAN)
-        val spanY = (maxLat - minLat).coerceAtLeast(MIN_SPAN)
-        val availW = (width - 2 * padding).coerceAtLeast(0f).toDouble()
-        val availH = (height - 2 * padding).coerceAtLeast(0f).toDouble()
-        val scale = min(availW / spanX, availH / spanY)
-        val offX = padding + (availW - spanX * scale) / 2
-        val offY = padding + (availH - spanY * scale) / 2
-
+        val t = Transform.of(rings, width, height, padding) ?: return emptyList()
         return rings.map { ring ->
             FloatArray(ring.size).also { out ->
                 var i = 0
                 while (i + 1 < ring.size) {
-                    val lng = if (unwrap) unwrapped(ring[i]) else ring[i]
-                    out[i] = (offX + (lng - minLng) * kx * scale).toFloat()
-                    out[i + 1] = (offY + (maxLat - ring[i + 1]) * scale).toFloat()
+                    out[i] = t.x(ring[i])
+                    out[i + 1] = t.y(ring[i + 1])
                     i += 2
                 }
+            }
+        }
+    }
+
+    /**
+     * Places one lng/lat point (e.g. the user's location) exactly where [fit] would put it for
+     * the same [rings] and box, as `[x, y]`. `null` when there is nothing to fit against.
+     */
+    fun point(rings: List<DoubleArray>, lng: Double, lat: Double, width: Float, height: Float, padding: Float): FloatArray? {
+        val t = Transform.of(rings, width, height, padding) ?: return null
+        return floatArrayOf(t.x(lng), t.y(lat))
+    }
+
+    private class Transform(
+        private val unwrap: Boolean,
+        private val minLng: Double,
+        private val maxLat: Double,
+        private val kx: Double,
+        private val scale: Double,
+        private val offX: Double,
+        private val offY: Double,
+    ) {
+        fun x(lng: Double): Float = (offX + ((if (unwrap) unwrapped(lng) else lng) - minLng) * kx * scale).toFloat()
+
+        fun y(lat: Double): Float = (offY + (maxLat - lat) * scale).toFloat()
+
+        companion object {
+            fun of(rings: List<DoubleArray>, width: Float, height: Float, padding: Float): Transform? {
+                if (rings.none { it.size >= 2 }) return null
+
+                var minLng = Double.POSITIVE_INFINITY
+                var maxLng = Double.NEGATIVE_INFINITY
+                var minLat = Double.POSITIVE_INFINITY
+                var maxLat = Double.NEGATIVE_INFINITY
+                forEachPoint(rings) { lng, lat ->
+                    minLng = min(minLng, lng); maxLng = maxOf(maxLng, lng)
+                    minLat = min(minLat, lat); maxLat = maxOf(maxLat, lat)
+                }
+
+                val unwrap = maxLng - minLng > 180.0
+                if (unwrap) {
+                    minLng = Double.POSITIVE_INFINITY
+                    maxLng = Double.NEGATIVE_INFINITY
+                    forEachPoint(rings) { lng, _ ->
+                        val x = unwrapped(lng)
+                        minLng = min(minLng, x); maxLng = maxOf(maxLng, x)
+                    }
+                }
+
+                val kx = cos(Math.toRadians((minLat + maxLat) / 2))
+                val spanX = ((maxLng - minLng) * kx).coerceAtLeast(MIN_SPAN)
+                val spanY = (maxLat - minLat).coerceAtLeast(MIN_SPAN)
+                val availW = (width - 2 * padding).coerceAtLeast(0f).toDouble()
+                val availH = (height - 2 * padding).coerceAtLeast(0f).toDouble()
+                val scale = min(availW / spanX, availH / spanY)
+                val offX = padding + (availW - spanX * scale) / 2
+                val offY = padding + (availH - spanY * scale) / 2
+                return Transform(unwrap, minLng, maxLat, kx, scale, offX, offY)
             }
         }
     }

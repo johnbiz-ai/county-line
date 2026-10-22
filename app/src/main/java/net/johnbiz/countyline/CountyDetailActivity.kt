@@ -14,6 +14,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import net.johnbiz.countyline.county.CountyRepository
+import net.johnbiz.countyline.county.currentPositionSource
 import net.johnbiz.countyline.county.detailSource
 import net.johnbiz.countyline.notify.Notifications
 import net.johnbiz.countyline.ui.CountyDetailScreen
@@ -21,7 +22,7 @@ import net.johnbiz.countyline.ui.CountyDetailViewModel
 import net.johnbiz.countyline.ui.CountyLineTheme
 
 /**
- * Shows the outline, Census facts, and links for one county. Launched with [EXTRA_FIPS]; with
+ * Shows the outline (with a dot where the user is, when inside it), Census facts, and links for one county. Launched with [EXTRA_FIPS]; with
  * [EXTRA_OPEN_URL] (the crossing alert's "Things to do"), it also dismisses the alert and opens that link.
  */
 class CountyDetailActivity : ComponentActivity() {
@@ -32,6 +33,7 @@ class CountyDetailActivity : ComponentActivity() {
                 CountyDetailViewModel(
                     fips = intent.getStringExtra(EXTRA_FIPS).orEmpty(),
                     source = CountyRepository.get(applicationContext).detailSource(),
+                    position = CountyRepository.get(applicationContext).currentPositionSource(applicationContext),
                 )
             }
         }
@@ -50,6 +52,12 @@ class CountyDetailActivity : ComponentActivity() {
                 CountyDetailScreen(state = state, onBack = ::finish, onOpenLink = ::openLink)
             }
         }
+    }
+
+    // A fresh fix each time the screen comes back into view, so the dot never shows a stale spot.
+    override fun onStart() {
+        super.onStart()
+        viewModel.refreshPosition()
     }
 
     private fun openLink(url: String) {

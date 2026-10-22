@@ -119,6 +119,10 @@ Core loop:
   intent opens `CountyDetailActivity` (FIPS extra, `TaskStackBuilder` back stack) and the
   "Things to do" action opens Google Maps. All links are `ACTION_VIEW` URLs; the app has no
   `INTERNET` permission, so keep it that way.
+- The detail screen's "you are here" dot comes from a one-shot fused fix taken on every
+  `onStart` (`CurrentPositionSource`), resolved with the shared resolver and shown only when it
+  matches the screen's FIPS. Coordinates stay in memory; don't persist them (the privacy policy
+  promises only the last-known county is stored).
 
 ## Tooling
 

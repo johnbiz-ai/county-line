@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.StrokeJoin
@@ -45,6 +46,7 @@ import net.johnbiz.countyline.core.OutlineProjection
 import net.johnbiz.countyline.core.fullName
 import net.johnbiz.countyline.county.CountyDetail
 import net.johnbiz.countyline.county.CountyLinks
+import net.johnbiz.countyline.county.CurrentPosition
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,13 +83,13 @@ fun CountyDetailScreen(
                 Text(stringResource(R.string.detail_not_found), style = MaterialTheme.typography.bodyLarge)
                 OutlinedButton(onClick = onBack) { Text(stringResource(R.string.detail_back)) }
             }
-            is CountyDetailUiState.Loaded -> CountyDetailContent(state.detail, onOpenLink, modifier)
+            is CountyDetailUiState.Loaded -> CountyDetailContent(state.detail, state.here, onOpenLink, modifier)
         }
     }
 }
 
 @Composable
-private fun CountyDetailContent(detail: CountyDetail, onOpenLink: (String) -> Unit, modifier: Modifier) {
+private fun CountyDetailContent(detail: CountyDetail, here: CurrentPosition?, onOpenLink: (String) -> Unit, modifier: Modifier) {
     val county = detail.county
     val kind = detail.facts?.kind
     Column(
@@ -96,7 +98,7 @@ private fun CountyDetailContent(detail: CountyDetail, onOpenLink: (String) -> Un
     ) {
         val outlineLabel = stringResource(R.string.detail_outline_description, "${county.fullName(kind)}, ${county.stateAbbr}")
         detail.outline?.let {
-            CountyOutline(it, Modifier.fillMaxWidth().aspectRatio(4f / 3f).semantics { contentDescription = outlineLabel })
+            CountyOutline(it, here, Modifier.fillMaxWidth().aspectRatio(4f / 3f).semantics { contentDescription = outlineLabel })
         }
         detail.facts?.let { FactsRow(it) }
         Button(onClick = { onOpenLink(CountyLinks.thingsToDo(county, kind)) }, Modifier.fillMaxWidth()) {
@@ -143,14 +145,19 @@ private fun FactsRow(facts: CountyFacts) {
     }
 }
 
-/** Draws a county outline in theme colors; even-odd fill keeps holes empty. The path is rebuilt only on resize. */
+/**
+ * Draws a county outline in theme colors; even-odd fill keeps holes empty, and [here] adds a ringed
+ * dot at the user's position. The path is rebuilt only on resize or when [here] changes.
+ */
 @Composable
-private fun CountyOutline(rings: List<DoubleArray>, modifier: Modifier = Modifier) {
+private fun CountyOutline(rings: List<DoubleArray>, here: CurrentPosition?, modifier: Modifier = Modifier) {
     val stroke = MaterialTheme.colorScheme.primary
     val fill = stroke.copy(alpha = 0.25f)
+    val halo = MaterialTheme.colorScheme.surface
     Spacer(
         modifier.drawWithCache {
-            val projected = OutlineProjection.fit(rings, size.width, size.height, padding = 16.dp.toPx())
+            val padding = 16.dp.toPx()
+            val projected = OutlineProjection.fit(rings, size.width, size.height, padding)
             val path = Path().apply { fillType = PathFillType.EvenOdd }
             for (ring in projected) {
                 if (ring.size < 4) continue
@@ -163,9 +170,17 @@ private fun CountyOutline(rings: List<DoubleArray>, modifier: Modifier = Modifie
                 path.close()
             }
             val strokeWidth = 2.dp.toPx()
+            val dot = here?.let { OutlineProjection.point(rings, it.lng, it.lat, size.width, size.height, padding) }
+                ?.let { Offset(it[0], it[1]) }
+            val dotRadius = 6.dp.toPx()
+            val haloRadius = dotRadius + 2.5.dp.toPx()
             onDrawBehind {
                 drawPath(path, fill)
                 drawPath(path, stroke, style = Stroke(width = strokeWidth, join = StrokeJoin.Round))
+                if (dot != null) {
+                    drawCircle(halo, haloRadius, dot)
+                    drawCircle(stroke, dotRadius, dot)
+                }
             }
         },
     )
@@ -182,6 +197,7 @@ private fun CountyDetailScreenPreview() {
                     facts = CountyFacts("County", 609863, 473.375),
                     outline = listOf(doubleArrayOf(-95.06, 38.74, -94.61, 38.74, -94.61, 39.04, -95.06, 39.04, -95.06, 38.74)),
                 ),
+                here = CurrentPosition(lat = 38.88, lng = -94.82, fips = "20091"),
             ),
             onBack = {},
             onOpenLink = {},
