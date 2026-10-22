@@ -23,7 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.johnbiz.countyline.R
@@ -47,7 +47,7 @@ fun StatusScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Text("County Line", style = MaterialTheme.typography.headlineMedium)
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
 
             CurrentCountyCard(state.currentCounty, onOpenCountyDetails)
 
@@ -72,15 +72,16 @@ private fun CurrentCountyCard(county: County?, onOpenDetails: (County) -> Unit) 
     val body: @Composable () -> Unit = {
         Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Current county", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.status_current_county), style = MaterialTheme.typography.labelMedium)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = county?.let { "${it.name}\n${it.stateName}" } ?: "Unknown — waiting for a fix",
+                    text = county?.let { stringResource(R.string.status_county_value, it.name, it.stateName) }
+                        ?: stringResource(R.string.status_county_unknown),
                     style = MaterialTheme.typography.titleLarge,
                 )
             }
             if (county != null) {
-                Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = "View county details")
+                Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = stringResource(R.string.status_view_county_details))
             }
         }
     }
@@ -97,31 +98,28 @@ private fun PermissionCard(
     onGrantClick: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    if (readiness == TrackingReadiness.READY) return
-
     val (title, body, action) = when (readiness) {
         TrackingReadiness.NEEDS_FOREGROUND_LOCATION -> Triple(
-            "Location permission needed",
-            "County Line needs location access to tell which county you're in.",
-            "Grant location",
+            R.string.permission_foreground_title,
+            R.string.permission_foreground_body,
+            R.string.permission_foreground_action,
         )
         TrackingReadiness.NEEDS_BACKGROUND_LOCATION -> Triple(
-            "Allow all the time",
-            "To detect crossings while the app is closed, set location access to \"Allow all the time\".",
-            "Grant background location",
+            R.string.permission_background_title,
+            R.string.permission_background_body,
+            R.string.permission_background_action,
         )
         TrackingReadiness.FOREGROUND_ONLY -> Triple(
-            "Background tracking is off",
-            "Location is set to \"While using the app\", so crossings won't be detected in the background. " +
-                "Open settings and choose \"Allow all the time\".",
-            "Open settings",
+            R.string.permission_foreground_only_title,
+            R.string.permission_foreground_only_body,
+            R.string.permission_foreground_only_action,
         )
         TrackingReadiness.NEEDS_NOTIFICATIONS -> Triple(
-            "Notifications are blocked",
-            "County Line can't alert you about crossings until notifications are allowed.",
-            "Allow notifications",
+            R.string.permission_notifications_title,
+            R.string.permission_notifications_body,
+            R.string.permission_notifications_action,
         )
-        TrackingReadiness.READY -> Triple("", "", "")
+        TrackingReadiness.READY -> return
     }
 
     Card(
@@ -129,12 +127,12 @@ private fun PermissionCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(body, style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(body), style = MaterialTheme.typography.bodyMedium)
             if (readiness == TrackingReadiness.FOREGROUND_ONLY) {
-                Button(onClick = onOpenSettings) { Text(action) }
+                Button(onClick = onOpenSettings) { Text(stringResource(action)) }
             } else {
-                Button(onClick = onGrantClick) { Text(action) }
+                Button(onClick = onGrantClick) { Text(stringResource(action)) }
             }
         }
     }
@@ -154,7 +152,7 @@ private fun TrackingToggle(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Background tracking", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.tracking_title), style = MaterialTheme.typography.titleMedium)
                 Switch(
                     checked = enabled,
                     onCheckedChange = onToggle,
@@ -162,11 +160,13 @@ private fun TrackingToggle(
                 )
             }
             Text(
-                text = when {
-                    serviceRunning -> "Active — you'll get a notification each time you cross a county line."
-                    enabled -> "Enabled, but paused until permissions are granted."
-                    else -> "Off. Turn on to start watching for county crossings."
-                },
+                text = stringResource(
+                    when {
+                        serviceRunning -> R.string.tracking_active
+                        enabled -> R.string.tracking_paused
+                        else -> R.string.tracking_off
+                    },
+                ),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
