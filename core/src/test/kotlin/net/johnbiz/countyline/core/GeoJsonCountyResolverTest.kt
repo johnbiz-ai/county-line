@@ -64,6 +64,42 @@ class GeoJsonCountyResolverTest {
     }
 
     @Test
+    fun `a point just outside a county snaps to it`() {
+        val r = synthetic()
+        // ~1.1 km west of Alpha, in a grid cell no polygon touches.
+        assertEquals("Alpha", r.resolve(lat = 0.5, lng = -0.01)?.name)
+        // ~1.1 km south of Charlie's outer edge.
+        assertEquals("Charlie", r.resolve(lat = 9.99, lng = 15.0)?.name)
+    }
+
+    @Test
+    fun `a point just inside a hole snaps to the surrounding county`() {
+        assertEquals("Charlie", synthetic().resolve(lat = 15.0, lng = 13.01)?.name)
+    }
+
+    @Test
+    fun `snapping picks the nearest county`() {
+        val r = synthetic()
+        // Just north of the Alpha/Bravo border, closer to Bravo's side.
+        assertEquals("Bravo", r.resolve(lat = 1.01, lng = 1.02)?.name)
+        assertEquals("Alpha", r.resolve(lat = 1.01, lng = 0.98)?.name)
+    }
+
+    @Test
+    fun `points beyond the snap tolerance stay null`() {
+        val r = synthetic()
+        assertNull("~11 km west of Alpha", r.resolve(lat = 0.5, lng = -0.1))
+    }
+
+    @Test
+    fun `a zero snap tolerance disables snapping`() {
+        val r = javaClass.getResourceAsStream("/synthetic-counties.geojson")!!
+            .use { GeoJsonCountyResolver.fromGeoJson(it, snapToleranceKm = 0.0) }
+        assertNull(r.resolve(lat = 0.5, lng = -0.01))
+        assertEquals("Alpha", r.resolve(lat = 0.5, lng = 0.5)?.name)
+    }
+
+    @Test
     fun `reads a gzip-compressed stream`() {
         val raw = javaClass.getResourceAsStream("/synthetic-counties.geojson")!!.use { it.readBytes() }
         val gz = java.io.ByteArrayOutputStream()
@@ -159,6 +195,13 @@ class GeoJsonCountyResolverTest {
         // San Bernardino County vs Riverside County, CA.
         assertResolves(r, 34.07, -117.24, "06071", "San Bernardino")
         assertResolves(r, 33.95, -117.24, "06065", "Riverside")
+    }
+
+    @Test
+    fun `real dataset snaps coastal points the simplified outline cuts off`() {
+        val r = realResolver()
+        // Citrus County, FL shoreline: ~60 m outside the dataset's coarse Gulf coast polygon.
+        assertResolves(r, 28.909661400433784, -82.69162923967076, "12017", "Citrus")
     }
 
     @Test

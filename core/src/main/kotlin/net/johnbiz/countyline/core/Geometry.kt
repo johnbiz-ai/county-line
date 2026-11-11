@@ -1,5 +1,8 @@
 package net.johnbiz.countyline.core
 
+import kotlin.math.cos
+import kotlin.math.sqrt
+
 /**
  * An axis-aligned bounding box in lng/lat degrees. Used as a cheap pre-filter
  * before the (relatively expensive) point-in-polygon test.
@@ -61,7 +64,42 @@ internal class CountyPolygon(
         return inside
     }
 
+    /**
+     * Distance in kilometers from the point to the nearest edge of any ring (holes included).
+     * Uses an equirectangular projection centered on the point, which is accurate to well under
+     * 1% at the few-kilometer distances snapping cares about.
+     */
+    fun edgeDistanceKm(lng: Double, lat: Double): Double {
+        val kx = KM_PER_DEGREE * cos(Math.toRadians(lat))
+        var best = Double.POSITIVE_INFINITY
+        for (ring in rings) {
+            val n = ring.size / 2
+            for (i in 1 until n) {
+                val d = segmentDistanceSq(
+                    (ring[i * 2 - 2] - lng) * kx, (ring[i * 2 - 1] - lat) * KM_PER_DEGREE,
+                    (ring[i * 2] - lng) * kx, (ring[i * 2 + 1] - lat) * KM_PER_DEGREE,
+                )
+                if (d < best) best = d
+            }
+        }
+        return sqrt(best)
+    }
+
     companion object {
+        /** Mean length of one degree of latitude. */
+        const val KM_PER_DEGREE: Double = 111.32
+
+        /** Squared distance from the origin to segment (ax,ay)-(bx,by). */
+        private fun segmentDistanceSq(ax: Double, ay: Double, bx: Double, by: Double): Double {
+            val dx = bx - ax
+            val dy = by - ay
+            val lenSq = dx * dx + dy * dy
+            val t = if (lenSq == 0.0) 0.0 else (-(ax * dx + ay * dy) / lenSq).coerceIn(0.0, 1.0)
+            val x = ax + t * dx
+            val y = ay + t * dy
+            return x * x + y * y
+        }
+
         /** @param rings first entry is the outer ring; the rest are holes. */
         fun of(county: County, rings: List<DoubleArray>): CountyPolygon =
             CountyPolygon(county, rings, BoundingBox.ofRing(rings.first()))
