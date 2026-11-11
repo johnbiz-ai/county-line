@@ -1,5 +1,6 @@
 package net.johnbiz.countyline.core
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -52,5 +53,27 @@ class GeometryTest {
         assertTrue(bb.contains(-5.0, -3.0))
         assertTrue(bb.contains(7.0, 11.0))
         assertFalse(bb.contains(-5.1, 0.0))
+    }
+
+    @Test
+    fun `edge distance is measured to the nearest segment in kilometers`() {
+        val poly = CountyPolygon.of(county, listOf(square(0.0, 0.0, 1.0, 1.0)))
+        // 0.01° of longitude at the equator is about 1.11 km.
+        assertEquals(1.11, poly.edgeDistanceKm(lng = -0.01, lat = 0.5), 0.01)
+        // Nearest point is the corner, not the extended edge line.
+        assertEquals(1.57, poly.edgeDistanceKm(lng = -0.01, lat = -0.01), 0.01)
+    }
+
+    @Test
+    fun `edge distance shrinks longitude with latitude`() {
+        val poly = CountyPolygon.of(county, listOf(square(0.0, 59.0, 1.0, 61.0)))
+        // At 60°N a degree of longitude is half as long as at the equator.
+        assertEquals(0.556, poly.edgeDistanceKm(lng = -0.01, lat = 60.0), 0.01)
+    }
+
+    @Test
+    fun `edge distance counts hole rings`() {
+        val poly = CountyPolygon.of(county, listOf(square(0.0, 0.0, 10.0, 10.0), square(4.0, 4.0, 6.0, 6.0)))
+        assertEquals(1.11, poly.edgeDistanceKm(lng = 4.01, lat = 5.0), 0.01)
     }
 }

@@ -10,7 +10,8 @@ interface CountyResolver {
     /**
      * @return the county containing ([lat], [lng]), or `null` if the point is
      * outside every county in the dataset (open water, outside the US, or an
-     * unmapped territory).
+     * unmapped territory). Implementations may snap a point just outside a
+     * county's simplified outline (e.g. on a shoreline) to that county.
      */
     fun resolve(lat: Double, lng: Double): County?
 }

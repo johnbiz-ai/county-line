@@ -10,6 +10,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.InputStream
 import java.util.zip.GZIPInputStream
+import kotlin.math.cos
 import kotlin.math.floor
 
 /**
@@ -24,6 +25,12 @@ import kotlin.math.floor
  * box overlaps). [resolve] then only bounding-box-tests and ray-casts the
  * handful of polygons registered in the one cell containing the query point.
  *
+ * ### Coastal snapping
+ * The dataset's outlines are heavily simplified (a coastal county can have edges tens of km long),
+ * so shoreline points often fall just outside every polygon. When containment finds nothing,
+ * [resolve] falls back to the county whose edge is nearest, if it is within `snapToleranceKm`.
+ * The fallback never overrides a real containment hit.
+ *
  * ### Known limitations
  * - Polygons that cross the ±180° antimeridian (parts of the Alaskan Aleutians)
  *   are not stitched; a query right on that line may miss.
@@ -34,6 +41,7 @@ import kotlin.math.floor
 class GeoJsonCountyResolver private constructor(
     private val grid: Map<Long, List<CountyPolygon>>,
     private val catalog: Map<String, CatalogEntry>,
+    private val snapToleranceKm: Double,
 ) : CountyResolver, CountyCatalog {
 
     /** Number of distinct counties successfully loaded. */
@@ -43,11 +51,38 @@ class GeoJsonCountyResolver private constructor(
     val fipsCodes: Set<String> get() = catalog.keys
 
     override fun resolve(lat: Double, lng: Double): County? {
-        val candidates = grid[cellKey(cell(lat), cell(lng))] ?: return null
-        for (polygon in candidates) {
-            if (polygon.contains(lng, lat)) return polygon.county
+        grid[cellKey(cell(lat), cell(lng))]?.let { candidates ->
+            for (polygon in candidates) {
+                if (polygon.contains(lng, lat)) return polygon.county
+            }
         }
-        return null
+        return if (snapToleranceKm > 0.0) nearest(lat, lng) else null
+    }
+
+    /** The county with an edge within [snapToleranceKm] of the point, nearest first; else `null`. */
+    private fun nearest(lat: Double, lng: Double): County? {
+        val dLat = snapToleranceKm / CountyPolygon.KM_PER_DEGREE
+        val dLng = snapToleranceKm / (CountyPolygon.KM_PER_DEGREE * cos(Math.toRadians(lat)).coerceAtLeast(MIN_COS_LAT))
+        var best: County? = null
+        var bestKm = snapToleranceKm
+        val seen = HashSet<CountyPolygon>()
+        for (latCell in cell(lat - dLat)..cell(lat + dLat)) {
+            for (lngCell in cell(lng - dLng)..cell(lng + dLng)) {
+                for (polygon in grid[cellKey(latCell, lngCell)] ?: continue) {
+                    if (!seen.add(polygon)) continue
+                    val bb = polygon.boundingBox
+                    if (lat < bb.minLat - dLat || lat > bb.maxLat + dLat ||
+                        lng < bb.minLng - dLng || lng > bb.maxLng + dLng
+                    ) continue
+                    val km = polygon.edgeDistanceKm(lng, lat)
+                    if (km <= bestKm) {
+                        bestKm = km
+                        best = polygon.county
+                    }
+                }
+            }
+        }
+        return best
     }
 
     override fun county(fips: String): County? = catalog[fips]?.county
@@ -60,22 +95,40 @@ class GeoJsonCountyResolver private constructor(
         /** Grid cell size in degrees. ~1° ≈ 111 km N/S; a reasonable bucket size for the US. */
         const val CELL_DEGREES: Int = 1
 
+        /**
+         * Default reach of the coastal-snapping fallback. Measured against the Census 500k
+         * coastline, it covers most gaps the simplified outlines leave (median ~0.4 km; Florida's
+         * Big Bend reaches 10+ km) while keeping open water and distant shores `null`.
+         */
+        const val DEFAULT_SNAP_TOLERANCE_KM: Double = 5.0
+
+        /** Keeps the longitude search window finite near the poles. */
+        private const val MIN_COS_LAT = 0.01
+
         private val json = Json {
             ignoreUnknownKeys = true
             isLenient = true
         }
 
-        /** Build a resolver from an uncompressed GeoJSON stream. */
-        fun fromGeoJson(input: InputStream): GeoJsonCountyResolver {
+        /**
+         * Build a resolver from an uncompressed GeoJSON stream.
+         * @param snapToleranceKm reach of the coastal-snapping fallback; `0` disables it.
+         */
+        fun fromGeoJson(
+            input: InputStream,
+            snapToleranceKm: Double = DEFAULT_SNAP_TOLERANCE_KM,
+        ): GeoJsonCountyResolver {
             val text = input.bufferedReader().use { it.readText() }
-            return fromFeatureCollection(json.decodeFromString<FeatureCollection>(text))
+            return fromFeatureCollection(json.decodeFromString<FeatureCollection>(text), snapToleranceKm)
         }
 
-        /** Build a resolver from a gzip-compressed GeoJSON stream (the bundled asset). */
-        fun fromGzippedGeoJson(input: InputStream): GeoJsonCountyResolver =
-            fromGeoJson(GZIPInputStream(input))
+        /** Build a resolver from a gzip-compressed GeoJSON stream. */
+        fun fromGzippedGeoJson(
+            input: InputStream,
+            snapToleranceKm: Double = DEFAULT_SNAP_TOLERANCE_KM,
+        ): GeoJsonCountyResolver = fromGeoJson(GZIPInputStream(input), snapToleranceKm)
 
-        private fun fromFeatureCollection(fc: FeatureCollection): GeoJsonCountyResolver {
+        private fun fromFeatureCollection(fc: FeatureCollection, snapToleranceKm: Double): GeoJsonCountyResolver {
             val grid = HashMap<Long, MutableList<CountyPolygon>>()
             val rings = HashMap<String, MutableList<DoubleArray>>()
             val counties = HashMap<String, County>()
@@ -103,6 +156,7 @@ class GeoJsonCountyResolver private constructor(
             return GeoJsonCountyResolver(
                 grid = grid.mapValues { (_, v) -> v.toList() },
                 catalog = counties.mapValues { (fips, county) -> CatalogEntry(county, rings.getValue(fips)) },
+                snapToleranceKm = snapToleranceKm,
             )
         }
 
